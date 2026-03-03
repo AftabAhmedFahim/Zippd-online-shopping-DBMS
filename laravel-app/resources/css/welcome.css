@@ -1,0 +1,237 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap");
+
+@font-face {
+    font-family: "Gerbil";
+    src: url("/fonts/gerbil.ttf") format("truetype");
+}
+
+.font-display {
+    font-family: "Gerbil", "Trebuchet MS", "Segoe UI", sans-serif;
+}
+
+.font-roboto {
+    font-family: "Roboto", "Segoe UI", Tahoma, sans-serif;
+}
+
+.marker-yellow,
+.marker-pink {
+    border-radius: 999px;
+    padding: 0 0.16em;
+    white-space: nowrap;
+}
+
+.marker-yellow {
+    box-shadow: inset 0 -0.22em 0 #f1de86;
+}
+
+.marker-pink {
+    box-shadow: inset 0 -0.22em 0 #efb7d8;
+}
+
+.mark-overlay {
+    position: relative;
+    display: inline-block;
+    z-index: 1;
+    padding: 0 0.14em;
+    white-space: nowrap;
+}
+
+.mark-overlay::before {
+    content: "";
+    position: absolute;
+    left: -0.05em;
+    right: -0.05em;
+    bottom: 0.06em;
+    height: 0.52em;
+    border-radius: 999px;
+    z-index: -1;
+}
+
+.mark-overlay-pink::before {
+    background: #efb7d8;
+}
+
+.mark-overlay-mint::before {
+    background: #cfe8da;
+}
+
+.mark-underline {
+    position: relative;
+    display: inline-block;
+    white-space: nowrap;
+}
+
+.mark-underline::after {
+    content: "";
+    position: absolute;
+    left: -0.06em;
+    right: -0.06em;
+    bottom: 0.12em;
+    height: 0.1em;
+    border-radius: 999px;
+    background: #f2be48;
+    transform: rotate(-1.3deg);
+}
+
+.hero-frame {
+    position: relative;
+    height: 260px;
+    overflow: hidden;
+    border: 3px solid #2f7cd8;
+    border-radius: 28px;
+    background: #efefef;
+    animation: float-frame 7s ease-in-out infinite;
+}
+
+.menu-btn {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 5px;
+    border: 0;
+    background: transparent;
+    padding: 4px;
+}
+
+.menu-line {
+    display: block;
+    width: 18px;
+    height: 1px;
+    background: #111;
+}
+
+.underline-swoop {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 5px;
+}
+
+.topbar-animate {
+    animation: slide-down 700ms cubic-bezier(0.2, 0.9, 0.25, 1) both;
+}
+
+.hero-line {
+    display: block;
+    opacity: 0;
+    transform: translateY(26px);
+    animation: reveal-up 800ms cubic-bezier(0.2, 0.9, 0.25, 1) forwards;
+}
+
+.hero-line.line-1 {
+    animation-delay: 120ms;
+}
+
+.hero-line.line-2 {
+    animation-delay: 260ms;
+}
+
+.hero-line.line-3 {
+    animation-delay: 400ms;
+}
+
+.hero-frame img {
+    animation: hero-drift 11s ease-in-out infinite alternate;
+}
+
+.reveal-on-scroll {
+    opacity: 0;
+    transform: translateY(36px) scale(0.985);
+    transition: opacity 760ms ease, transform 760ms cubic-bezier(0.2, 0.9, 0.25, 1);
+    transition-delay: var(--reveal-delay, 0ms);
+}
+
+.reveal-on-scroll.is-visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+.cta-button {
+    animation: cta-pop 700ms cubic-bezier(0.2, 0.9, 0.25, 1) 520ms both, cta-breathe 3.2s ease-in-out 2s infinite;
+    transition: transform 220ms ease, box-shadow 220ms ease, opacity 220ms ease;
+}
+
+.cta-button:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.24);
+}
+
+@keyframes slide-down {
+    from {
+        opacity: 0;
+        transform: translateY(-18px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes reveal-up {
+    from {
+        opacity: 0;
+        transform: translateY(26px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes float-frame {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-6px);
+    }
+}
+
+@keyframes hero-drift {
+    0% {
+        transform: translateX(0) scale(1.01);
+    }
+    100% {
+        transform: translateX(-1.8%) scale(1.04);
+    }
+}
+
+@keyframes cta-pop {
+    from {
+        opacity: 0;
+        transform: translateY(14px) scale(0.92);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes cta-breathe {
+    0%,
+    100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.03);
+    }
+}
+
+@media (min-width: 768px) {
+    .hero-frame {
+        height: 420px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .topbar-animate,
+    .hero-line,
+    .hero-frame,
+    .hero-frame img,
+    .reveal-on-scroll,
+    .cta-button {
+        animation: none !important;
+        transition: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+    }
+}
