@@ -1,10 +1,10 @@
 services:
   db:
     image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: agora_mssql
+    container_name: zippd_mssql
     environment:
       ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: "Agora@12345678"
+      MSSQL_SA_PASSWORD: "Zippd@12345678"
     ports:
       - "1433:1433"
     volumes:
@@ -14,7 +14,7 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile
-    container_name: agora_laravel
+    container_name: zippd_laravel
     working_dir: /var/www
     volumes:
       - ./laravel-app:/var/www
