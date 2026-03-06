@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\AuthService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -14,6 +15,13 @@ use Illuminate\View\View;
 
 class RegisteredUserController extends Controller
 {
+    protected AuthService $authService;
+
+    public function __construct(AuthService $authService)
+    {
+        $this->authService = $authService;
+    }
+
     /**
      * Display the registration view.
      */
@@ -37,17 +45,23 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        $user = User::create([
+        // Register user using MS SQL queries via AuthService
+        $result = $this->authService->registerWithMsSQL([
             'full_name' => $request->full_name,
             'email' => $request->email,
             'phone' => $request->phone,
             'gender' => $request->gender,
-            'password_hash' => Hash::make($request->password),
+            'password' => $request->password,
         ]);
 
-        event(new Registered($user));
+        // If registration failed
+        if (!$result) {
+            return redirect()->back()->withErrors(['email' => 'Email already exists or registration failed.']);
+        }
 
-        Auth::login($user);
+        // Retrieve the registered user to fire the Registered event
+        $user = User::find($result['user_id']);
+        event(new Registered($user));
 
         return redirect(route('dashboard', absolute: false));
     }
