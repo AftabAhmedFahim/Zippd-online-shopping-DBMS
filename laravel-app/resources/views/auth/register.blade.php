@@ -104,5 +104,7 @@
             </div>
         </div>
     </main>
+
+    @include('partials.mssql-console-debug')
 </body>
 </html>

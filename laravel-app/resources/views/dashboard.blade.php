@@ -199,5 +199,7 @@
         </main>
     </div>
 </div>
+
+@include('partials.mssql-console-debug')
 </body>
 </html>
