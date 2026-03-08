@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Support\MsSqlConsoleDebug;
 use Illuminate\Support\Facades\DB;
 
 class UserService
@@ -14,13 +15,15 @@ class UserService
      */
     public function findByEmail(string $email): ?array
     {
+        $sql = 'SELECT user_id, full_name, email, password_hash, phone, gender, address, created_at, updated_at 
+                FROM users 
+                WHERE email = ?';
+        $bindings = [$email];
+
         $user = DB::connection('sqlsrv')
-            ->selectOne(
-                'SELECT user_id, full_name, email, password_hash, phone, gender, address, created_at, updated_at 
-                 FROM users 
-                 WHERE email = ?',
-                [$email]
-            );
+            ->selectOne($sql, $bindings);
+
+        MsSqlConsoleDebug::push($sql, $bindings, $user ? (array) $user : null);
 
         return $user ? (array) $user : null;
     }
@@ -33,13 +36,15 @@ class UserService
      */
     public function findById(int $userId): ?array
     {
+        $sql = 'SELECT user_id, full_name, email, password_hash, phone, gender, address, created_at, updated_at 
+                FROM users 
+                WHERE user_id = ?';
+        $bindings = [$userId];
+
         $user = DB::connection('sqlsrv')
-            ->selectOne(
-                'SELECT user_id, full_name, email, password_hash, phone, gender, address, created_at, updated_at 
-                 FROM users 
-                 WHERE user_id = ?',
-                [$userId]
-            );
+            ->selectOne($sql, $bindings);
+
+        MsSqlConsoleDebug::push($sql, $bindings, $user ? (array) $user : null);
 
         return $user ? (array) $user : null;
     }
@@ -52,11 +57,13 @@ class UserService
      */
     public function checkEmailExists(string $email): bool
     {
+        $sql = 'SELECT COUNT(*) as count FROM users WHERE email = ?';
+        $bindings = [$email];
+
         $result = DB::connection('sqlsrv')
-            ->selectOne(
-                'SELECT COUNT(*) as count FROM users WHERE email = ?',
-                [$email]
-            );
+            ->selectOne($sql, $bindings);
+
+        MsSqlConsoleDebug::push($sql, $bindings, $result ? (array) $result : null);
 
         return $result->count > 0;
     }
@@ -70,19 +77,21 @@ class UserService
     public function createUser(array $userData): ?int
     {
         try {
+            $sql = 'INSERT INTO users (full_name, email, password_hash, phone, gender, address, created_at) 
+                    VALUES (?, ?, ?, ?, ?, ?, SYSDATETIME())';
+            $bindings = [
+                $userData['full_name'],
+                $userData['email'],
+                $userData['password_hash'],
+                $userData['phone'] ?? null,
+                $userData['gender'] ?? null,
+                $userData['address'] ?? null,
+            ];
+
             $result = DB::connection('sqlsrv')
-                ->insert(
-                    'INSERT INTO users (full_name, email, password_hash, phone, gender, address, created_at) 
-                     VALUES (?, ?, ?, ?, ?, ?, SYSDATETIME())',
-                    [
-                        $userData['full_name'],
-                        $userData['email'],
-                        $userData['password_hash'],
-                        $userData['phone'] ?? null,
-                        $userData['gender'] ?? null,
-                        $userData['address'] ?? null,
-                    ]
-                );
+                ->insert($sql, $bindings);
+
+            MsSqlConsoleDebug::push($sql, $bindings, ['inserted' => $result]);
 
             // Retrieve the newly inserted user's ID
             if ($result) {
