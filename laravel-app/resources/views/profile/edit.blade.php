@@ -1,29 +1,32 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Profile') }}
-        </h2>
+        <div class="flex items-center">
+            <a href="{{ route('dashboard') }}" class="font-display text-2xl leading-none tracking-tight md:text-[30px]">
+                {{ __('Zippd') }}
+            </a>
+        </div>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
+    <div class="dashboard-fade-up py-8 md:py-10">
+        <div class="mx-auto grid w-full gap-6 px-5 md:px-10 lg:px-14" style="max-width: 1120px;">
+            <div class="dashboard-solid-card relative overflow-hidden rounded-2xl p-6 sm:p-8">
+                <div style="position: absolute; top: 1.5rem; right: 1.5rem; z-index: 10;">
+                    <a href="{{ route('dashboard') }}" class="inline-flex items-center justify-center rounded-xl border border-black/20 bg-white px-4 py-2 font-roboto text-sm font-medium text-black transition hover:bg-black/5 focus:outline-none focus:ring-2 focus:ring-black/20">
+                        {{ __('Back to Dashboard') }}
+                    </a>
+                </div>
+                <div class="max-w-3xl">
                     @include('profile.partials.update-profile-information-form')
                 </div>
             </div>
 
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.update-password-form')
-                </div>
-            </div>
-
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
+            <div class="dashboard-solid-card overflow-hidden rounded-2xl p-6 sm:p-8">
+                <div class="max-w-3xl">
                     @include('profile.partials.delete-user-form')
                 </div>
             </div>
         </div>
     </div>
+
+    @include('partials.mssql-console-debug')
 </x-app-layout>

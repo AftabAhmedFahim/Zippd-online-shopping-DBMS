@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Support\MsSqlConsoleDebug;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class UserService
 {
@@ -107,4 +108,77 @@ class UserService
         }
     }
 
+    /**
+     * Verify a user's current password from MS SQL data.
+     */
+    public function verifyCurrentPassword(int $userId, string $currentPassword): bool
+    {
+        $user = $this->findById($userId);
+
+        if (!$user || empty($user['password_hash'])) {
+            return false;
+        }
+
+        return Hash::check($currentPassword, $user['password_hash']);
+    }
+
+    /**
+     * Update user profile fields using raw MS SQL query.
+     */
+    public function updateUserProfile(int $userId, array $profileData): bool
+    {
+        try {
+            $sql = 'UPDATE users
+                    SET full_name = ?, phone = ?, address = ?, updated_at = SYSDATETIME()
+                    WHERE user_id = ?';
+            $bindings = [
+                $profileData['full_name'],
+                $profileData['phone'] ?? null,
+                $profileData['address'] ?? null,
+                $userId,
+            ];
+
+            if (isset($profileData['password_hash'])) {
+                $sql = 'UPDATE users
+                        SET full_name = ?, phone = ?, address = ?, password_hash = ?, updated_at = SYSDATETIME()
+                        WHERE user_id = ?';
+                $bindings = [
+                    $profileData['full_name'],
+                    $profileData['phone'] ?? null,
+                    $profileData['address'] ?? null,
+                    $profileData['password_hash'],
+                    $userId,
+                ];
+            }
+
+            $affectedRows = DB::connection('sqlsrv')->update($sql, $bindings);
+
+            MsSqlConsoleDebug::push($sql, $bindings, ['affected_rows' => $affectedRows]);
+
+            return $affectedRows >= 0;
+        } catch (\Throwable $e) {
+            \Log::error('Error updating user profile: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Delete user using raw MS SQL query.
+     */
+    public function deleteUser(int $userId): bool
+    {
+        try {
+            $sql = 'DELETE FROM users WHERE user_id = ?';
+            $bindings = [$userId];
+
+            $affectedRows = DB::connection('sqlsrv')->delete($sql, $bindings);
+
+            MsSqlConsoleDebug::push($sql, $bindings, ['affected_rows' => $affectedRows]);
+
+            return $affectedRows > 0;
+        } catch (\Throwable $e) {
+            \Log::error('Error deleting user: ' . $e->getMessage());
+            return false;
+        }
+    }
 }

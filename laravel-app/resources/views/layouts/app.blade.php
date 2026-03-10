@@ -13,15 +13,34 @@
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @if (request()->routeIs('profile.*'))
+            @vite(['resources/css/dashboard.css'])
+        @endif
+        @stack('styles')
     </head>
-    <body class="font-sans antialiased">
-        <div class="min-h-screen bg-gray-100">
-            @include('layouts.navigation')
+    <body @class([
+        'antialiased',
+        'dashboard-theme text-[#171717]' => request()->routeIs('profile.*'),
+        'font-sans' => !request()->routeIs('profile.*'),
+    ])>
+        <div @class([
+            'min-h-screen',
+            'bg-gray-100' => !request()->routeIs('profile.*'),
+        ])>
+            @unless (request()->routeIs('profile.*'))
+                @include('layouts.navigation')
+            @endunless
 
             <!-- Page Heading -->
             @isset($header)
-                <header class="bg-white shadow">
-                    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                <header @class([
+                    'bg-white',
+                    'shadow' => !request()->routeIs('profile.*'),
+                    'topbar-animate relative z-50 border-b border-black/10' => request()->routeIs('profile.*'),
+                ])>
+                    <div class="{{ request()->routeIs('profile.*')
+                        ? 'w-full px-5 py-5 md:px-10 md:py-6 lg:px-14'
+                        : 'mx-auto max-w-7xl py-6 px-4 sm:px-6 lg:px-8' }}">
                         {{ $header }}
                     </div>
                 </header>

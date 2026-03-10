@@ -118,5 +118,6 @@
             revealItems.forEach((item) => observer.observe(item));
         });
     </script>
+    @include('partials.mssql-console-debug')
 </body>
 </html>
