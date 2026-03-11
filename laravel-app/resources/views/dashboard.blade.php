@@ -14,66 +14,76 @@
     $avatarLetter = $trimmedName !== '' ? strtoupper(substr($trimmedName, 0, 1)) : 'U';
 @endphp
 
-<div x-data="{ mobileSidebar: false }" class="min-h-screen">
+<div class="min-h-screen">
     <header class="topbar-animate relative z-50 border-b border-black/10">
-        <div class="flex w-full items-center justify-between px-5 py-5 md:px-10 md:py-6 lg:px-14">
-            <div class="flex items-center gap-3">
-                <button type="button"
-                        class="inline-flex items-center justify-center rounded-md border border-black/20 bg-white/60 p-2 text-black md:hidden"
-                        @click="mobileSidebar = !mobileSidebar">
-                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
-                </button>
+        <div class="w-full px-5 py-5 md:px-10 md:py-6 lg:px-14">
+            <div class="flex items-center justify-between gap-4">
                 <a href="{{ route('dashboard') }}" class="font-display text-2xl leading-none tracking-tight md:text-[30px]">Zippd</a>
-            </div>
 
-            <div class="relative" x-data="{ open: false }">
-                <button type="button"
-                        class="avatar-trigger"
-                        @click.stop="open = !open"
-                        aria-label="Open profile menu">
-                    <span class="avatar-inner">
-                        {{ $avatarLetter }}
-                    </span>
-                </button>
-
-                <div x-show="open"
-                     x-transition
-                     @click.outside="open = false"
-                     class="profile-menu absolute right-0 z-[70] mt-2 w-44 rounded-lg border border-black/10 bg-white py-2 shadow-xl"
-                     style="display: none;">
-                    <a href="{{ route('profile.edit') }}"
-                       class="block px-4 py-2 text-sm text-black/80 transition hover:bg-black/5">
-                        Edit profile
+                <nav class="hidden flex-1 items-center justify-center gap-2 md:flex">
+                    <a href="{{ route('dashboard') }}"
+                       class="sidebar-link flex items-center gap-2 rounded-xl bg-black px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white">
+                        <span class="inline-flex h-6 w-6 items-center justify-center rounded-lg bg-white/15 text-white">
+                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l9-9 9 9M9 21V9h6v12" />
+                            </svg>
+                        </span>
+                        Dashboard
                     </a>
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button type="submit"
-                                class="block w-full px-4 py-2 text-left text-sm text-black/80 transition hover:bg-black/5">
-                            Logout
-                        </button>
-                    </form>
+                    <a href="{{ route('products') }}"
+                       class="sidebar-link flex items-center gap-2 rounded-xl bg-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-black/80 hover:bg-white">
+                        <span class="inline-flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700">
+                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7L12 3 4 7m16 0v10l-8 4-8-4V7m16 0-8 4m-8-4 8 4m0 0v10" />
+                            </svg>
+                        </span>
+                        Products
+                    </a>
+                    <a href="{{ route('dashboard.orders') }}"
+                       class="sidebar-link flex items-center gap-2 rounded-xl bg-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-black/80 hover:bg-white">
+                        <span class="inline-flex h-6 w-6 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
+                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l2.5 12.5a2 2 0 002 1.5h8.5a2 2 0 001.95-1.55L22 7H8m2 14a1 1 0 100 2 1 1 0 000-2zm9 0a1 1 0 100 2 1 1 0 000-2z" />
+                            </svg>
+                        </span>
+                        Order Details
+                    </a>
+                </nav>
+
+                <div class="relative" x-data="{ open: false }">
+                    <button type="button"
+                            class="avatar-trigger"
+                            @click.stop="open = !open"
+                            aria-label="Open profile menu">
+                        <span class="avatar-inner">
+                            {{ $avatarLetter }}
+                        </span>
+                    </button>
+
+                    <div x-show="open"
+                         x-transition
+                         @click.outside="open = false"
+                         class="profile-menu absolute right-0 z-[70] mt-2 w-44 rounded-lg border border-black/10 bg-white py-2 shadow-xl"
+                         style="display: none;">
+                        <a href="{{ route('profile.edit') }}"
+                           class="block px-4 py-2 text-sm text-black/80 transition hover:bg-black/5">
+                            Edit profile
+                        </a>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit"
+                                    class="block w-full px-4 py-2 text-left text-sm text-black/80 transition hover:bg-black/5">
+                                Logout
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
-        </div>
-    </header>
 
-    <div class="relative flex w-full min-h-[calc(100vh-84px)]">
-        <div x-show="mobileSidebar"
-             x-transition.opacity
-             class="fixed inset-0 z-30 bg-black/30 md:hidden"
-             @click="mobileSidebar = false"
-             style="display: none;"></div>
-
-        <aside class="dashboard-glass fixed inset-y-0 left-0 z-40 mt-[84px] h-[calc(100vh-90px)] w-64 transform rounded-r-2xl p-4 transition md:sticky md:top-0 md:mt-0 md:h-auto md:min-h-[calc(100vh-84px)] md:translate-x-0 md:rounded-none md:border-l-0"
-               :class="mobileSidebar ? 'translate-x-0' : '-translate-x-full'">
-            <p class="font-mono px-3 pb-4 pt-1 text-2xl leading-none">Menu</p>
-
-            <nav class="space-y-2">
+            <nav class="mt-4 flex gap-2 overflow-x-auto pb-1 md:hidden">
                 <a href="{{ route('dashboard') }}"
-                   class="sidebar-link flex items-center gap-3 rounded-xl bg-black px-4 py-3 text-sm font-semibold uppercase tracking-wide text-white">
-                    <span class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-white/15 text-white">
+                   class="sidebar-link flex shrink-0 items-center gap-2 rounded-xl bg-black px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white">
+                    <span class="inline-flex h-6 w-6 items-center justify-center rounded-lg bg-white/15 text-white">
                         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l9-9 9 9M9 21V9h6v12" />
                         </svg>
@@ -81,8 +91,8 @@
                     Dashboard
                 </a>
                 <a href="{{ route('products') }}"
-                   class="sidebar-link flex items-center gap-3 rounded-xl bg-white/70 px-4 py-3 text-sm font-semibold uppercase tracking-wide text-black/80 hover:bg-white">
-                    <span class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700">
+                   class="sidebar-link flex shrink-0 items-center gap-2 rounded-xl bg-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-black/80 hover:bg-white">
+                    <span class="inline-flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700">
                         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7L12 3 4 7m16 0v10l-8 4-8-4V7m16 0-8 4m-8-4 8 4m0 0v10" />
                         </svg>
@@ -90,8 +100,8 @@
                     Products
                 </a>
                 <a href="{{ route('dashboard.orders') }}"
-                   class="sidebar-link flex items-center gap-3 rounded-xl bg-white/70 px-4 py-3 text-sm font-semibold uppercase tracking-wide text-black/80 hover:bg-white">
-                    <span class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
+                   class="sidebar-link flex shrink-0 items-center gap-2 rounded-xl bg-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-black/80 hover:bg-white">
+                    <span class="inline-flex h-6 w-6 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
                         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l2.5 12.5a2 2 0 002 1.5h8.5a2 2 0 001.95-1.55L22 7H8m2 14a1 1 0 100 2 1 1 0 000-2zm9 0a1 1 0 100 2 1 1 0 000-2z" />
                         </svg>
@@ -99,10 +109,11 @@
                     Order Details
                 </a>
             </nav>
-        </aside>
+        </div>
+    </header>
 
-        <main class="dashboard-fade-up min-w-0 flex-1 px-5 py-6 md:px-10 md:py-8">
-            <div class="mx-auto max-w-6xl space-y-6">
+    <main class="dashboard-fade-up min-w-0 px-5 py-6 md:px-10 md:py-8">
+        <div class="mx-auto max-w-6xl space-y-6">
                 <div>
                     <h1 class="font-mono text-[46px] leading-[0.95] tracking-[-0.02em] text-black">Dashboard</h1>
                     <p class="font-roboto mt-2 text-[15px] text-black/70">Welcome back. {{ $userInfo['full_name'] ?? 'User' }}!</p>
@@ -196,8 +207,7 @@
                     </section>
                 </div>
             </div>
-        </main>
-    </div>
+    </main>
 </div>
 
 @include('partials.mssql-console-debug')
