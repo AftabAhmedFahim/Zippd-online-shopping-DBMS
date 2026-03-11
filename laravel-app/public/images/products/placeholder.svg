@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="825" viewBox="0 0 1200 825" fill="none">
+  <defs>
+    <linearGradient id="g1" x1="0" y1="0" x2="1200" y2="825" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F2EAD8"/>
+      <stop offset="1" stop-color="#DDEFEA"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="825" rx="24" fill="url(#g1)"/>
+  <rect x="120" y="104" width="960" height="617" rx="24" fill="#FFFDF7" stroke="#DCCFB2" stroke-width="6"/>
+  <circle cx="345" cy="308" r="88" fill="#D9ECE8"/>
+  <path d="M228 548L430 396L568 494L739 345L972 548V650H228V548Z" fill="#EEDFC0"/>
+  <path d="M228 547L430 395L568 493L739 344L972 547" stroke="#C8B692" stroke-width="12" stroke-linecap="round"/>
+  <text x="600" y="708" fill="#625843" font-size="48" text-anchor="middle" font-family="Arial, sans-serif" font-weight="700">
+    Product Image
+  </text>
+</svg>

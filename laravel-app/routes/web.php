@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -12,9 +13,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->middleware('verified')
         ->name('dashboard');
-    Route::get('/products', function () {
-        return view('products');
-    })
+    Route::get('/products', [ProductController::class, 'index'])
         ->middleware('verified')
         ->name('products');
     Route::get('/dashboard/orders', function () {
