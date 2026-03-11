@@ -36,9 +36,6 @@ Stores admin accounts (admins manage products).
 - `password_hash`
 - `status`
 
-**Used by**
-- `products.admin_id` (which admin manages/created product entry)
-
 ---
 
 ### 3) `products`

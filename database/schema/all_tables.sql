@@ -33,7 +33,6 @@ CREATE TABLE categories (
 
 CREATE TABLE products (
     product_id INT IDENTITY(1,1) PRIMARY KEY,
-    admin_id INT NOT NULL FOREIGN KEY REFERENCES admins(admin_id),
     product_name VARCHAR(255) NOT NULL,
     description VARCHAR(MAX) NULL,
     stock_qty INT NOT NULL DEFAULT 0,

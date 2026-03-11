@@ -14,7 +14,6 @@ return new class extends Migration
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id('product_id');
-            $table->foreignId('admin_id')->constrained('admins', 'admin_id')->noActionOnDelete();
             $table->string('product_name');
             $table->text('description')->nullable();
             $table->unsignedInteger('stock_qty')->default(0);

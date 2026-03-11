@@ -42,21 +42,21 @@ SET IDENTITY_INSERT categories OFF;
 /* PRODUCTS */
 SET IDENTITY_INSERT products ON;
 
-INSERT INTO products (product_id, admin_id, product_name, description, stock_qty, price)
+INSERT INTO products (product_id, product_name, description, stock_qty, price)
 VALUES
-(1,1,'ASUS TUF Gaming F15','Gaming laptop i5 RTX3050 16GB 512GB',8,109999),
-(2,1,'Lenovo IdeaPad 3','Ryzen 5 laptop 8GB RAM 512GB SSD',12,64999),
-(3,2,'Intel Core i5-12400F','6 core 12 thread processor',20,18999),
-(4,2,'AMD Ryzen 5 5600','6 core gaming CPU',18,16999),
-(5,2,'NVIDIA RTX 4060','8GB gaming graphics card',10,46999),
-(6,2,'NVIDIA RTX 3060','12GB graphics card',9,38999),
-(7,1,'Corsair Vengeance 16GB DDR4','16GB 3200MHz RAM kit',30,5499),
-(8,1,'G.Skill Ripjaws 32GB DDR4','32GB RAM kit',16,9999),
-(9,1,'Samsung 970 EVO Plus 1TB','NVMe SSD',14,10999),
-(10,1,'WD Blue 500GB NVMe','Budget SSD',25,5499),
-(11,2,'MSI B550M PRO VDH WIFI','AMD motherboard',11,13999),
-(12,2,'Gigabyte B660M DS3H','Intel motherboard',9,14999),
-(13,1,'Corsair CV650','650W 80+ Bronze PSU',22,6499);
+(1,'ASUS TUF Gaming F15','Gaming laptop i5 RTX3050 16GB 512GB',8,109999),
+(2,'Lenovo IdeaPad 3','Ryzen 5 laptop 8GB RAM 512GB SSD',12,64999),
+(3,'Intel Core i5-12400F','6 core 12 thread processor',20,18999),
+(4,'AMD Ryzen 5 5600','6 core gaming CPU',18,16999),
+(5,'NVIDIA RTX 4060','8GB gaming graphics card',10,46999),
+(6,'NVIDIA RTX 3060','12GB graphics card',9,38999),
+(7,'Corsair Vengeance 16GB DDR4','16GB 3200MHz RAM kit',30,5499),
+(8,'G.Skill Ripjaws 32GB DDR4','32GB RAM kit',16,9999),
+(9,'Samsung 970 EVO Plus 1TB','NVMe SSD',14,10999),
+(10,'WD Blue 500GB NVMe','Budget SSD',25,5499),
+(11,'MSI B550M PRO VDH WIFI','AMD motherboard',11,13999),
+(12,'Gigabyte B660M DS3H','Intel motherboard',9,14999),
+(13,'Corsair CV650','650W 80+ Bronze PSU',22,6499);
 
 SET IDENTITY_INSERT products OFF;
 
