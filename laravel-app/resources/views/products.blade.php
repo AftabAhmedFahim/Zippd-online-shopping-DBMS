@@ -12,9 +12,14 @@
     $currentUser = auth()->user();
     $displayName = trim((string) ($currentUser->full_name ?? 'User'));
     $avatarLetter = $displayName !== '' ? strtoupper(substr($displayName, 0, 1)) : 'U';
+    $cartItemCount = (int) ($cartSummary['item_count'] ?? 0);
+    $cartUniqueCount = (int) ($cartSummary['unique_count'] ?? 0);
 @endphp
 
-<div x-data="productCatalogPage()" class="min-h-screen">
+<div x-data='productCatalogPage(@json([
+    "initialCartItemCount" => $cartItemCount,
+    "initialCartUniqueCount" => $cartUniqueCount,
+]))' class="min-h-screen">
     <div class="catalog-content" :class="{ 'catalog-content--blurred': selectedProduct !== null }">
         <header class="topbar-animate relative z-50 border-b border-black/10">
             <div class="w-full px-5 py-5 md:px-10 md:py-6 lg:px-14">
@@ -113,6 +118,25 @@
 
         <main class="dashboard-fade-up min-w-0 px-5 py-8 md:px-10 md:py-10">
             <div class="mx-auto max-w-7xl space-y-8 md:space-y-10">
+                @if(session('cart_success'))
+                    <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                        {{ session('cart_success') }}
+                    </div>
+                @endif
+                @if(session('cart_error'))
+                    <div class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                        {{ session('cart_error') }}
+                    </div>
+                @endif
+                <div x-cloak
+                     x-show="flashMessage"
+                     class="rounded-xl border px-4 py-3 text-sm"
+                     :class="flashType === 'success'
+                        ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                        : 'border-rose-200 bg-rose-50 text-rose-700'"
+                     x-text="flashMessage">
+                </div>
+
                 <nav aria-label="Breadcrumb" class="catalog-breadcrumb catalog-enter catalog-enter-1">
                     <ol class="flex flex-wrap items-center gap-2 text-sm">
                         <li>
@@ -165,6 +189,18 @@
                                 <option value="price_asc" @selected($selectedSort === 'price_asc')>Price: Low to High</option>
                                 <option value="price_desc" @selected($selectedSort === 'price_desc')>Price: High to Low</option>
                             </select>
+                            <a href="{{ route('checkout.show') }}"
+                               class="catalog-checkout-btn mt-3 inline-flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-sm font-semibold transition hover:brightness-110">
+                                <span>Checkout</span>
+                                <span class="rounded-full bg-white/20 px-2.5 py-0.5 text-xs font-semibold"
+                                      x-text="`${cartItemCount} item${cartItemCount === 1 ? '' : 's'}`">
+                                    {{ $cartItemCount }} items
+                                </span>
+                            </a>
+                            <p class="mt-2 text-xs text-black/50"
+                               x-text="`${cartUniqueCount} unique product${cartUniqueCount === 1 ? '' : 's'} in cart`">
+                                {{ $cartUniqueCount }} unique products in cart
+                            </p>
                         </div>
 
                         <div class="flex gap-2 md:col-span-2 lg:col-span-4">
@@ -251,6 +287,27 @@
                                                 {{ $stockLabel }}
                                             </span>
                                         </div>
+
+                                        <form method="POST"
+                                              action="{{ route('cart.add', ['productId' => (int) $product['product_id']]) }}"
+                                              class="pt-1"
+                                              x-on:submit.prevent="addToCart($event, {{ (int) $product['product_id'] }})"
+                                              x-on:click.stop
+                                              x-on:keydown.stop>
+                                            @csrf
+                                            <input type="hidden" name="quantity" value="1" />
+                                            <button type="submit"
+                                                    class="catalog-add-btn inline-flex w-full items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold transition"
+                                                    x-bind:disabled="{{ $stockQty === 0 ? 'true' : ('isAdding(' . (int) $product['product_id'] . ')') }}"
+                                                    @disabled($stockQty === 0)
+                                                    x-on:click.stop>
+                                                <span x-show="{{ $stockQty === 0 ? 'true' : 'false' }}">Out of stock</span>
+                                                <span x-show="{{ $stockQty > 0 ? 'true' : 'false' }}"
+                                                      x-text="isAdding({{ (int) $product['product_id'] }}) ? 'Adding...' : 'Add to Cart'">
+                                                    Add to Cart
+                                                </span>
+                                            </button>
+                                        </form>
                                     </div>
                                 </article>
                             @endforeach
@@ -340,9 +397,18 @@
 </div>
 
 <script>
-    function productCatalogPage() {
+    function productCatalogPage(config = {}) {
+        const initialCartItemCount = Number(config.initialCartItemCount ?? 0);
+        const initialCartUniqueCount = Number(config.initialCartUniqueCount ?? 0);
+
         return {
             selectedProduct: null,
+            cartItemCount: Number.isFinite(initialCartItemCount) ? initialCartItemCount : 0,
+            cartUniqueCount: Number.isFinite(initialCartUniqueCount) ? initialCartUniqueCount : 0,
+            flashMessage: '',
+            flashType: 'success',
+            pendingProductIds: [],
+            flashTimeoutId: null,
             openProduct(product) {
                 this.selectedProduct = product;
                 document.body.classList.add('overflow-hidden');
@@ -350,6 +416,65 @@
             closeProduct() {
                 this.selectedProduct = null;
                 document.body.classList.remove('overflow-hidden');
+            },
+            isAdding(productId) {
+                return this.pendingProductIds.includes(productId);
+            },
+            setFlash(message, type = 'success') {
+                this.flashMessage = message;
+                this.flashType = type;
+
+                if (this.flashTimeoutId) {
+                    clearTimeout(this.flashTimeoutId);
+                }
+
+                this.flashTimeoutId = window.setTimeout(() => {
+                    this.flashMessage = '';
+                    this.flashTimeoutId = null;
+                }, 3200);
+            },
+            async addToCart(event, productId) {
+                if (this.isAdding(productId)) {
+                    return;
+                }
+
+                const form = event.target;
+                this.pendingProductIds.push(productId);
+
+                try {
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                        body: new FormData(form),
+                        credentials: 'same-origin',
+                    });
+
+                    const contentType = response.headers.get('content-type') || '';
+                    const payload = contentType.includes('application/json')
+                        ? await response.json()
+                        : null;
+
+                    if (!response.ok || !payload || payload.success !== true) {
+                        const errorMessage =
+                            payload?.errors?.quantity?.[0]
+                            ?? payload?.message
+                            ?? 'Unable to add this item right now. Please try again.';
+
+                        this.setFlash(errorMessage, 'error');
+                        return;
+                    }
+
+                    this.cartItemCount = Number(payload.cart_summary?.item_count ?? this.cartItemCount);
+                    this.cartUniqueCount = Number(payload.cart_summary?.unique_count ?? this.cartUniqueCount);
+                    this.setFlash(payload.message ?? 'Item added to cart.', 'success');
+                } catch (error) {
+                    this.setFlash('Unable to add this item right now. Please try again.', 'error');
+                } finally {
+                    this.pendingProductIds = this.pendingProductIds.filter((id) => id !== productId);
+                }
             },
         };
     }

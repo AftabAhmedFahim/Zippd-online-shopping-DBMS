@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\CartService;
 use App\Services\ProductService;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
@@ -11,8 +12,10 @@ class ProductController extends Controller
 {
     private const PER_PAGE = 12;
 
-    public function __construct(private readonly ProductService $productService)
-    {
+    public function __construct(
+        private readonly ProductService $productService,
+        private readonly CartService $cartService
+    ) {
     }
 
     public function index(Request $request): View
@@ -53,6 +56,7 @@ class ProductController extends Controller
             'selectedCategory' => $filters['category_id'],
             'searchTerm' => $filters['search'],
             'selectedSort' => $filters['sort'],
+            'cartSummary' => $this->cartService->getCartSummary($request),
         ]);
     }
 }
