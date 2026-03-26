@@ -36,3 +36,8 @@ GROUP BY
     p.price
 ORDER BY {ORDER_BY_CLAUSE}
 OFFSET ? ROWS FETCH NEXT ? ROWS ONLY;
+
+-- 3) Single product lookup by product_id (used by cart add flow)
+SELECT product_id, product_name, price, stock_qty
+FROM products
+WHERE product_id = ?;

@@ -114,6 +114,22 @@
     color: #474334;
 }
 
+.catalog-checkout-btn {
+    background: linear-gradient(120deg, #1f2937, #111827);
+    color: #ffffff;
+}
+
+.catalog-add-btn {
+    background: linear-gradient(120deg, #0f766e, #0a5f58);
+    color: #ffffff;
+}
+
+.catalog-add-btn:disabled {
+    cursor: not-allowed;
+    background: #d1d5db;
+    color: #4b5563;
+}
+
 .catalog-card {
     background: var(--surface-0);
     border: 1px solid var(--border-soft);
