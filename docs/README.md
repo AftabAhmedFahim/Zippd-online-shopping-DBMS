@@ -26,7 +26,7 @@ Stores customer accounts.
 ---
 
 ### 2) `admins`
-Stores admin accounts (admins manage products).
+Stores admin accounts.
 
 **Main columns**
 - `admin_id` (PK)
@@ -43,7 +43,6 @@ Stores products available for purchase.
 
 **Main columns**
 - `product_id` (PK)
-- `admin_id` (FK → `admins.admin_id`)
 - `product_name`
 - `description`
 - `stock_qty`
@@ -215,10 +214,6 @@ Stores return requests made by users for items in an order.
 ### Products → Reviews
 - **1 product** can have **many reviews**
 - `reviews.product_id` → `products.product_id`
-
-### Admins → Products
-- **1 admin** can manage **many products**
-- `products.admin_id` → `admins.admin_id`
 
 ### Products ↔ Categories (Many-to-Many)
 - Implemented via `product_categories`
