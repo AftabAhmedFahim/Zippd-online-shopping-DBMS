@@ -1,0 +1,28 @@
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: zippd_mssql
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "Zippd@12345678"
+    ports:
+      - "11433:1433"
+    volumes:
+      - mssql_data:/var/opt/mssql
+
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: zippd_laravel
+    working_dir: /var/www
+    volumes:
+      - ./laravel-app:/var/www
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    command: php artisan serve --host=0.0.0.0 --port=8000
+
+volumes:
+  mssql_data:

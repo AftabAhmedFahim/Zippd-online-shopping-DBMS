@@ -1,0 +1,306 @@
+[x-cloak] {
+    display: none !important;
+}
+
+.products-shell {
+    --bg-base: #f5f7f2;
+    --bg-layer-1: #eaf0ea;
+    --bg-layer-2: #dde7e2;
+    --surface-0: #fffef9;
+    --surface-1: #f8f5ea;
+    --surface-2: #efe7d6;
+    --ink-900: #1f1f1a;
+    --ink-700: #5e5b4f;
+    --ink-500: #878271;
+    --accent-700: #0a5f58;
+    --accent-600: #0f766e;
+    --accent-500: #1f8f86;
+    --accent-soft: #d8f1ee;
+    --danger-soft: #fee2e2;
+    --warning-soft: #fef3c7;
+    --success-soft: #d1fae5;
+    --border-soft: #e6e1cf;
+    --border-strong: #d7cfb8;
+    --shadow-soft: 0 20px 32px -30px rgba(17, 24, 39, 0.42);
+    --shadow-raised: 0 26px 44px -28px rgba(17, 24, 39, 0.5);
+    background:
+        radial-gradient(circle at 0% 0%, rgba(31, 143, 134, 0.12), transparent 42%),
+        radial-gradient(circle at 100% 12%, rgba(214, 176, 106, 0.14), transparent 38%),
+        linear-gradient(165deg, var(--bg-base), var(--bg-layer-1) 42%, var(--bg-layer-2));
+}
+
+.catalog-content {
+    transition: filter 260ms ease, transform 260ms ease;
+}
+
+.catalog-content--blurred {
+    filter: blur(6px) saturate(0.88);
+    transform: scale(0.995);
+    pointer-events: none;
+}
+
+.catalog-breadcrumb {
+    background: rgba(255, 255, 255, 0.86);
+    border: 1px solid var(--border-soft);
+    border-radius: 1rem;
+    padding: 0.65rem 1rem;
+    box-shadow: var(--shadow-soft);
+}
+
+.catalog-breadcrumb-link {
+    color: var(--ink-700);
+    font-weight: 600;
+}
+
+.catalog-breadcrumb-link:hover {
+    color: var(--accent-700);
+}
+
+.catalog-breadcrumb-sep {
+    color: var(--ink-500);
+    user-select: none;
+}
+
+.catalog-breadcrumb-current {
+    color: var(--ink-900);
+    font-weight: 700;
+}
+
+.catalog-header {
+    background: linear-gradient(130deg, rgba(255, 255, 255, 0.82), rgba(248, 244, 234, 0.86));
+    border: 1px solid rgba(255, 255, 255, 0.72);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.88) inset, var(--shadow-raised);
+}
+
+.catalog-heading {
+    color: var(--ink-900);
+    text-wrap: balance;
+}
+
+.catalog-subtitle {
+    color: var(--ink-700);
+}
+
+.catalog-filters {
+    background: var(--surface-0);
+    border: 1px solid var(--border-soft);
+    box-shadow: var(--shadow-soft);
+}
+
+.catalog-input,
+.catalog-select {
+    border: 1px solid var(--border-strong);
+    background: var(--surface-0);
+    color: var(--ink-900);
+    border-radius: 0.85rem;
+    transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+}
+
+.catalog-input:focus,
+.catalog-select:focus {
+    border-color: var(--accent-600);
+    box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.13);
+    outline: none;
+}
+
+.catalog-btn-primary {
+    background: linear-gradient(120deg, var(--accent-600), var(--accent-700));
+    color: #ffffff;
+}
+
+.catalog-btn-secondary {
+    border: 1px solid var(--border-strong);
+    background: var(--surface-1);
+    color: #474334;
+}
+
+.catalog-checkout-btn {
+    background: linear-gradient(120deg, #1f2937, #111827);
+    color: #ffffff;
+}
+
+.catalog-add-btn {
+    background: linear-gradient(120deg, #0f766e, #0a5f58);
+    color: #ffffff;
+}
+
+.catalog-add-btn:disabled {
+    cursor: not-allowed;
+    background: #d1d5db;
+    color: #4b5563;
+}
+
+.catalog-card {
+    background: var(--surface-0);
+    border: 1px solid var(--border-soft);
+    box-shadow: var(--shadow-soft);
+}
+
+.catalog-card-clickable {
+    cursor: pointer;
+}
+
+.catalog-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-raised);
+}
+
+.catalog-card:focus-visible {
+    outline: 2px solid var(--accent-600);
+    outline-offset: 2px;
+}
+
+.catalog-card-active {
+    border-color: var(--accent-600);
+    box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.2), var(--shadow-raised);
+}
+
+.catalog-image {
+    aspect-ratio: 16/11;
+    object-fit: cover;
+    background: #f5f2e8;
+}
+
+.catalog-chip {
+    background: #f3efe1;
+    border: 1px solid #ddd5be;
+    color: #5d5644;
+}
+
+.catalog-price {
+    color: var(--accent-700);
+}
+
+.catalog-stock-ok {
+    color: #065f46;
+    background: var(--success-soft);
+}
+
+.catalog-stock-low {
+    color: #92400e;
+    background: var(--warning-soft);
+}
+
+.catalog-stock-out {
+    color: #991b1b;
+    background: var(--danger-soft);
+}
+
+.catalog-empty {
+    background: repeating-linear-gradient(
+        -45deg,
+        #fffef8,
+        #fffef8 14px,
+        #f8f4e9 14px,
+        #f8f4e9 28px
+    );
+    border: 1px dashed var(--border-strong);
+}
+
+.catalog-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.25rem;
+}
+
+.catalog-overlay-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(17, 24, 39, 0.34);
+    backdrop-filter: blur(4px);
+}
+
+.catalog-modal-card {
+    position: relative;
+    z-index: 2;
+    width: min(920px, 96vw);
+    border-radius: 1.25rem;
+    border: 1px solid var(--border-soft);
+    background: var(--surface-0);
+    box-shadow: var(--shadow-raised);
+    padding: 1.4rem;
+}
+
+.catalog-modal-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.2rem;
+}
+
+.catalog-modal-close {
+    border: 1px solid var(--border-strong);
+    background: var(--surface-1);
+    border-radius: 0.7rem;
+    padding: 0.4rem 0.72rem;
+    color: var(--ink-700);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.9rem;
+}
+
+@media (min-width: 900px) {
+    .catalog-modal-grid {
+        grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+        gap: 1.6rem;
+        align-items: start;
+    }
+}
+
+.catalog-enter {
+    opacity: 0;
+    transform: translateY(14px);
+    animation: catalog-enter-up 520ms cubic-bezier(0.22, 0.9, 0.28, 1) forwards;
+}
+
+.catalog-enter-1 {
+    animation-delay: 40ms;
+}
+
+.catalog-enter-2 {
+    animation-delay: 95ms;
+}
+
+.catalog-enter-3 {
+    animation-delay: 150ms;
+}
+
+.catalog-enter-4 {
+    animation-delay: 205ms;
+}
+
+.catalog-enter-5 {
+    animation-delay: 255ms;
+}
+
+@keyframes catalog-enter-up {
+    from {
+        opacity: 0;
+        transform: translateY(14px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .catalog-card {
+        transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .catalog-enter,
+    .catalog-card,
+    .catalog-content,
+    .catalog-modal-card {
+        animation: none !important;
+        transition: none !important;
+    }
+}
