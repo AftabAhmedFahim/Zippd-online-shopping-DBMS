@@ -1,0 +1,3 @@
+-- Admin dashboard currently has no additional SQL.
+-- Admin authentication query is documented in:
+-- database/queries/authentication.sql

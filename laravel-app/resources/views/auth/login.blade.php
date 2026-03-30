@@ -33,16 +33,16 @@
                 @endif
 
                 <h1 class="font-display text-3xl leading-tight tracking-tight text-black mb-2">Welcome back</h1>
-                <p class="text-black/60 text-sm mb-8">Sign in to your Zippd account</p>
+                <p class="text-black/60 text-sm mb-8">Sign in with user email</p>
 
                 <form method="POST" action="{{ route('login') }}">
                     @csrf
 
-                    <!-- Email Address -->
+                    <!-- Email -->
                     <div class="auth-form-group mb-5">
-                        <label for="email" class="block text-sm font-semibold text-black mb-2">Email Address</label>
-                        <input id="email" class="auth-input w-full px-4 py-3 border border-black/15 rounded-lg focus:border-black/50 focus:outline-none focus:ring-1 focus:ring-black/20 transition @error('email') border-red-500 @enderror" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="username" />
-                        @error('email')
+                        <label for="login_id" class="block text-sm font-semibold text-black mb-2">Email</label>
+                        <input id="login_id" class="auth-input w-full px-4 py-3 border border-black/15 rounded-lg focus:border-black/50 focus:outline-none focus:ring-1 focus:ring-black/20 transition @error('login_id') border-red-500 @enderror" type="text" name="login_id" value="{{ old('login_id') }}" required autofocus autocomplete="username" />
+                        @error('login_id')
                             <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
