@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Admin;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -9,44 +10,62 @@ use Illuminate\Support\Facades\Hash;
 class AuthService
 {
     protected UserService $userService;
+    protected AdminService $adminService;
 
-    public function __construct(UserService $userService)
+    public function __construct(UserService $userService, AdminService $adminService)
     {
         $this->userService = $userService;
+        $this->adminService = $adminService;
     }
 
     /**
      * Authenticate user with MS SQL queries (Login)
      * Checks email & password match against database
      *
-     * @param string $email
+     * @param string $loginId
      * @param string $password
-     * @return bool
+     * @return string|null Returns "admin" or "user" on success, null on failure
      */
-    public function authenticateWithMsSQL(string $email, string $password): bool
+    public function authenticateWithMsSQL(string $loginId, string $password): ?string
     {
-        // Query the database to find user by email
-        $userData = $this->userService->findByEmail($email);
+        $loginId = trim($loginId);
 
-        // If user not found, return false
-        if (!$userData) {
-            return false;
+        if ($loginId === '') {
+            return null;
         }
 
-        // Verify password using Hash::check()
-        if (!Hash::check($password, $userData['password_hash'])) {
-            return false;
+        // Admin login by special numeric admin_id (same login page as users)
+        if (ctype_digit($loginId)) {
+            $adminId = (int) $loginId;
+            $adminData = $this->adminService->findByAdminId($adminId);
+
+            if ($adminData && Hash::check($password, (string) $adminData['password_hash'])) {
+                $admin = Admin::find($adminId);
+
+                if ($admin) {
+                    Auth::guard('admin')->login($admin);
+                    return 'admin';
+                }
+            }
         }
 
-        // User is valid, now retrieve the User model and authenticate
+        // User login by email
+        $userData = $this->userService->findByEmail($loginId);
+        if (! $userData) {
+            return null;
+        }
+
+        if (! Hash::check($password, (string) $userData['password_hash'])) {
+            return null;
+        }
+
         $user = User::find($userData['user_id']);
-
         if ($user) {
-            Auth::login($user);
-            return true;
+            Auth::guard('web')->login($user);
+            return 'user';
         }
 
-        return false;
+        return null;
     }
 
     /**
@@ -78,7 +97,7 @@ class AuthService
         $user = User::find($userId);
 
         if ($user) {
-            Auth::login($user);
+            Auth::guard('web')->login($user);
             return [
                 'success' => true,
                 'user_id' => $userId,
@@ -96,6 +115,12 @@ class AuthService
      */
     public function logout(): void
     {
-        Auth::logout();
+        if (Auth::guard('web')->check()) {
+            Auth::guard('web')->logout();
+        }
+
+        if (Auth::guard('admin')->check()) {
+            Auth::guard('admin')->logout();
+        }
     }
 }

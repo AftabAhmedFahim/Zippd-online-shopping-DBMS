@@ -5,13 +5,10 @@
         (() => {
             const entries = @json($mssqlConsoleDebugEntries);
 
-            console.groupCollapsed(`[MSSQL] ${entries.length} query log(s)`);
+            console.groupCollapsed(`[MSSQL] ${entries.length} query(s)`);
 
             entries.forEach((entry, index) => {
-                console.log(`Query #${index + 1}:`);
-                console.log(entry.sql);
-                console.log('Bindings:', entry.bindings);
-                console.log('Output:', entry.output);
+                console.log(`Query #${index + 1}: ${entry.sql}`);
             });
 
             console.groupEnd();

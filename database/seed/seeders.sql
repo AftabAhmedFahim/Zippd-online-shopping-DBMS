@@ -3,8 +3,9 @@ SET IDENTITY_INSERT admins ON;
 
 INSERT INTO admins (admin_id, full_name, email, phone, password_hash, status)
 VALUES
-(1,'Admin One','admin1@pcstore.com','01700000001','hash_admin_1','active'),
-(2,'Admin Two','admin2@pcstore.com','01700000002','hash_admin_2','active');
+(1001,'Admin One','admin1@zippd.com','01700000001','$2y$10$7RafJkzIownKidr5hR752euyLyT34pzq4S.VhKCKdkXqcJoPmyIii','active'),
+(1002,'Admin Two','admin2@zippd.com','01700000002','$2y$10$Pr1ryA.MTTZDkxAtDan9M.kEsAbb9g0naPMx9.IIfptLUKLJMmVZe','active'),
+(1003,'Admin Three','admin3@zippd.com','01700000003','$2y$10$uP2b17u59EEBcswKZ1j1DuWAZtWgUcVVSMcFTMoXetqjzFTE41XXG','active');
 
 SET IDENTITY_INSERT admins OFF;
 

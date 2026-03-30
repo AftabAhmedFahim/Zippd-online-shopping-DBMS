@@ -25,7 +25,7 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email'],
+            'login_id' => ['required', 'string', 'max:255'],
             'password' => ['required', 'string'],
         ];
     }
@@ -39,16 +39,18 @@ class LoginRequest extends FormRequest
     {
         // Use AuthService to authenticate with MS SQL queries
         $authService = app(AuthService::class);
-        $authenticated = $authService->authenticateWithMsSQL(
-            $this->email,
+        $authenticatedAs = $authService->authenticateWithMsSQL(
+            $this->login_id,
             $this->password
         );
 
-        if (! $authenticated) {
+        if (! $authenticatedAs) {
             throw ValidationException::withMessages([
-                'email' => trans('auth.failed'),
+                'login_id' => trans('auth.failed'),
             ]);
         }
+
+        $this->attributes->set('authenticated_as', $authenticatedAs);
     }
 
 
