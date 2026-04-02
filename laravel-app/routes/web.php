@@ -13,12 +13,29 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::middleware('guest:web,admin')
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::view('/login', 'auth.admin-login')->name('login');
+    });
+
 Route::middleware('auth:admin')
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])
             ->name('dashboard');
+        Route::get('/users', [AdminDashboardController::class, 'users'])
+            ->name('users');
+        Route::get('/categories', [AdminDashboardController::class, 'categories'])
+            ->name('categories');
+        Route::get('/products', [AdminDashboardController::class, 'products'])
+            ->name('products');
+        Route::get('/orders', [AdminDashboardController::class, 'orders'])
+            ->name('orders');
+        Route::get('/returns', [AdminDashboardController::class, 'returns'])
+            ->name('returns');
     });
 
 Route::middleware('auth')->group(function () {
