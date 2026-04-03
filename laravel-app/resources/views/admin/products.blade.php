@@ -7,6 +7,7 @@
     $oldEditAction = $oldEditProductId !== null
         ? route('admin.products.update', ['productId' => $oldEditProductId])
         : '#';
+    $oldCategoryIds = array_values(array_filter(array_map('intval', (array) old('category_ids', []))));
 @endphp
 
 <section class="flex flex-wrap items-start justify-between gap-4">
@@ -81,6 +82,30 @@
             >{{ old('description') }}</textarea>
             @if ($errors->productCreate->has('description'))
                 <p class="mt-2 text-sm text-rose-700">{{ $errors->productCreate->first('description') }}</p>
+            @endif
+        </div>
+
+        <div class="md:col-span-2">
+            <p class="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-black/55">
+                Categories <span class="text-rose-700">*</span>
+            </p>
+            <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                @foreach ($allCategories as $category)
+                    <label class="inline-flex items-center gap-2 rounded-lg border border-black/10 bg-white px-3 py-2">
+                        <input
+                            type="checkbox"
+                            name="category_ids[]"
+                            value="{{ $category['category_id'] }}"
+                            @checked(in_array((int) $category['category_id'], $oldCategoryIds, true))
+                        >
+                        <span class="text-sm text-black/80">{{ $category['category_name'] }}</span>
+                    </label>
+                @endforeach
+            </div>
+            @if ($errors->productCreate->has('category_ids') || $errors->productCreate->has('category_ids.*'))
+                <p class="mt-2 text-sm text-rose-700">
+                    {{ $errors->productCreate->first('category_ids') ?? $errors->productCreate->first('category_ids.*') }}
+                </p>
             @endif
         </div>
 
@@ -187,6 +212,7 @@
                     data-product-description="{{ e((string) ($product['description'] ?? '')) }}"
                     data-product-stock="{{ $product['stock_qty'] ?? 0 }}"
                     data-product-price="{{ $priceValue }}"
+                    data-product-category-ids="{{ e((string) ($product['category_ids'] ?? '')) }}"
                     data-update-url="{{ route('admin.products.update', ['productId' => $product['product_id']]) }}"
                 >
                     <td class="font-semibold text-black">{{ $product['product_id'] ?? '-' }}</td>
@@ -295,6 +321,30 @@
                 >{{ old('description') }}</textarea>
                 @if ($errors->productUpdate->has('description'))
                     <p class="mt-2 text-sm text-rose-700">{{ $errors->productUpdate->first('description') }}</p>
+                @endif
+            </div>
+
+            <div>
+                <p class="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-black/55">
+                    Categories <span class="text-rose-700">*</span>
+                </p>
+                <div class="grid gap-2 sm:grid-cols-2">
+                    @foreach ($allCategories as $category)
+                        <label class="inline-flex items-center gap-2 rounded-lg border border-black/10 bg-white px-3 py-2">
+                            <input
+                                type="checkbox"
+                                name="category_ids[]"
+                                value="{{ $category['category_id'] }}"
+                                @checked(in_array((int) $category['category_id'], $oldCategoryIds, true))
+                            >
+                            <span class="text-sm text-black/80">{{ $category['category_name'] }}</span>
+                        </label>
+                    @endforeach
+                </div>
+                @if ($errors->productUpdate->has('category_ids') || $errors->productUpdate->has('category_ids.*'))
+                    <p class="mt-2 text-sm text-rose-700">
+                        {{ $errors->productUpdate->first('category_ids') ?? $errors->productUpdate->first('category_ids.*') }}
+                    </p>
                 @endif
             </div>
 
@@ -421,6 +471,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const editDescriptionInput = document.getElementById('admin-product-edit-description');
     const editStockInput = document.getElementById('admin-product-edit-stock');
     const editPriceInput = document.getElementById('admin-product-edit-price');
+    const editCategoryInputs = editForm ? Array.from(editForm.querySelectorAll('input[name="category_ids[]"]')) : [];
     const closeEditBtn = document.getElementById('admin-product-edit-close');
     const hasUpdateErrors = @json($errors->productUpdate->any());
     const oldEditProductId = @json($oldEditProductId);
@@ -455,6 +506,16 @@ document.addEventListener('DOMContentLoaded', function () {
             editDescriptionInput.value = row.getAttribute('data-product-description') || '';
             editStockInput.value = row.getAttribute('data-product-stock') || '0';
             editPriceInput.value = row.getAttribute('data-product-price') || '0.00';
+            const selectedCategoryIds = (row.getAttribute('data-product-category-ids') || '')
+                .split(',')
+                .map((value) => value.trim())
+                .filter((value) => value !== '');
+
+            if (editCategoryInputs.length > 0) {
+                editCategoryInputs.forEach((checkbox) => {
+                    checkbox.checked = selectedCategoryIds.includes(checkbox.value);
+                });
+            }
 
             openEditModal();
         });

@@ -31,6 +31,7 @@ class AdminProductsController extends Controller
             ],
             'activeTab' => 'products',
             'products' => $this->adminProductsService->getProductsForAdminView($initialSearchQuery),
+            'allCategories' => $this->adminProductsService->getCategoriesForAdminForm(),
             'initialSearchQuery' => $initialSearchQuery,
         ]);
     }
@@ -42,6 +43,8 @@ class AdminProductsController extends Controller
             'description' => ['nullable', 'string', 'max:4000'],
             'stock_qty' => ['required', 'integer', 'min:0'],
             'price' => ['required', 'decimal:0,2', 'gte:0'],
+            'category_ids' => ['required', 'array', 'min:1'],
+            'category_ids.*' => ['required', 'integer', 'distinct'],
         ]);
 
         try {
@@ -49,7 +52,8 @@ class AdminProductsController extends Controller
                 trim((string) $validated['product_name']),
                 $this->normalizeNullableText($validated['description'] ?? null),
                 (int) $validated['stock_qty'],
-                $this->normalizeMoneyValue($validated['price'])
+                $this->normalizeMoneyValue($validated['price']),
+                $validated['category_ids']
             );
         } catch (Throwable $exception) {
             return redirect()
@@ -70,6 +74,8 @@ class AdminProductsController extends Controller
             'description' => ['nullable', 'string', 'max:4000'],
             'stock_qty' => ['required', 'integer', 'min:0'],
             'price' => ['required', 'decimal:0,2', 'gte:0'],
+            'category_ids' => ['required', 'array', 'min:1'],
+            'category_ids.*' => ['required', 'integer', 'distinct'],
             'edit_product_id' => ['nullable', 'integer'],
         ]);
 
@@ -79,7 +85,8 @@ class AdminProductsController extends Controller
                 trim((string) $validated['product_name']),
                 $this->normalizeNullableText($validated['description'] ?? null),
                 (int) $validated['stock_qty'],
-                $this->normalizeMoneyValue($validated['price'])
+                $this->normalizeMoneyValue($validated['price']),
+                $validated['category_ids']
             );
         } catch (Throwable $exception) {
             return redirect()

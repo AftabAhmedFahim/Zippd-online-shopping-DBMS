@@ -24,6 +24,7 @@ class AdminProductsService
                     p.description,
                     p.stock_qty,
                     p.price,
+                    cat.category_ids,
                     cat.category_names,
                     CAST(ISNULL(rev.avg_rating, 0) AS DECIMAL(4,2)) AS average_rating,
                     ISNULL(rev.review_count, 0) AS review_count
@@ -31,7 +32,8 @@ class AdminProductsService
                 LEFT JOIN (
                     SELECT
                         pc.product_id,
-                        STRING_AGG(c.category_name, ', ') WITHIN GROUP (ORDER BY c.category_name) AS category_names
+                        STRING_AGG(CAST(c.category_id AS VARCHAR(20)), ',') WITHIN GROUP (ORDER BY c.category_id) AS category_ids,
+                        STRING_AGG(c.category_name, ', ') WITHIN GROUP (ORDER BY c.category_id) AS category_names
                     FROM product_categories pc
                     INNER JOIN categories c ON c.category_id = pc.category_id
                     GROUP BY pc.product_id
@@ -70,34 +72,89 @@ class AdminProductsService
         return $products;
     }
 
+    /**
+     * @return array<int, array{category_id:int, category_name:string}>
+     */
+    public function getCategoriesForAdminForm(): array
+    {
+        $sql = 'SELECT category_id, category_name
+                FROM categories
+                ORDER BY category_name ASC';
+
+        $rows = DB::connection('sqlsrv')->select($sql);
+        $categories = array_map(static function (object $row): array {
+            return [
+                'category_id' => (int) $row->category_id,
+                'category_name' => (string) $row->category_name,
+            ];
+        }, $rows);
+
+        MsSqlConsoleDebug::push($sql, [], $categories);
+
+        return $categories;
+    }
+
+    /**
+     * @param array<int, mixed> $categoryIds
+     */
     public function createProductForAdmin(
         string $productName,
         ?string $description,
         int $stockQty,
-        string $price
+        string $price,
+        array $categoryIds
     ): int {
-        $sql = 'INSERT INTO products (product_name, description, stock_qty, price, created_at, updated_at)
-                OUTPUT INSERTED.product_id AS product_id
-                VALUES (?, ?, ?, ?, SYSDATETIME(), SYSDATETIME())';
-        $bindings = [$productName, $description, $stockQty, $price];
-        $row = DB::connection('sqlsrv')->selectOne($sql, $bindings);
+        $validatedCategoryIds = $this->resolveValidCategoryIds($categoryIds);
+        $connection = DB::connection('sqlsrv');
+        $connection->beginTransaction();
 
-        MsSqlConsoleDebug::push($sql, $bindings, $row ? (array) $row : null);
+        try {
+            MsSqlConsoleDebug::push('BEGIN TRANSACTION (PDO)', [], ['executed' => true]);
 
-        if ($row === null || !isset($row->product_id)) {
-            throw new RuntimeException('Unable to create product right now.');
+            $insertProductSql = 'INSERT INTO products (product_name, description, stock_qty, price, created_at, updated_at)
+                                 OUTPUT INSERTED.product_id AS product_id
+                                 VALUES (?, ?, ?, ?, SYSDATETIME(), SYSDATETIME())';
+            $insertProductBindings = [$productName, $description, $stockQty, $price];
+            $productRow = $connection->selectOne($insertProductSql, $insertProductBindings);
+            MsSqlConsoleDebug::push($insertProductSql, $insertProductBindings, $productRow ? (array) $productRow : null);
+
+            if ($productRow === null || !isset($productRow->product_id)) {
+                throw new RuntimeException('Unable to create product right now.');
+            }
+
+            $productId = (int) $productRow->product_id;
+            $insertMappingSql = 'INSERT INTO product_categories (product_id, category_id) VALUES (?, ?)';
+
+            foreach ($validatedCategoryIds as $categoryId) {
+                $insertMappingBindings = [$productId, $categoryId];
+                $connection->insert($insertMappingSql, $insertMappingBindings);
+                MsSqlConsoleDebug::push($insertMappingSql, $insertMappingBindings, ['executed' => true]);
+            }
+
+            $connection->commit();
+            MsSqlConsoleDebug::push('COMMIT TRANSACTION (PDO)', [], ['executed' => true]);
+
+            return $productId;
+        } catch (\Throwable $exception) {
+            $connection->rollBack();
+            MsSqlConsoleDebug::push('ROLLBACK TRANSACTION (PDO)', [], ['executed' => true]);
+            throw $exception;
         }
-
-        return (int) $row->product_id;
     }
 
+    /**
+     * @param array<int, mixed> $categoryIds
+     */
     public function updateProductForAdmin(
         int $productId,
         string $productName,
         ?string $description,
         int $stockQty,
-        string $price
+        string $price,
+        array $categoryIds
     ): void {
+        $validatedCategoryIds = $this->resolveValidCategoryIds($categoryIds);
+
         $existsSql = 'SELECT product_id FROM products WHERE product_id = ?';
         $existsBindings = [$productId];
         $existing = DB::connection('sqlsrv')->selectOne($existsSql, $existsBindings);
@@ -107,15 +164,41 @@ class AdminProductsService
             throw new RuntimeException('Product not found.');
         }
 
-        $updateSql = 'UPDATE products
-                      SET product_name = ?, description = ?, stock_qty = ?, price = ?, updated_at = SYSDATETIME()
-                      WHERE product_id = ?';
-        $updateBindings = [$productName, $description, $stockQty, $price, $productId];
-        $affectedRows = DB::connection('sqlsrv')->update($updateSql, $updateBindings);
-        MsSqlConsoleDebug::push($updateSql, $updateBindings, ['affected_rows' => $affectedRows]);
+        $connection = DB::connection('sqlsrv');
+        $connection->beginTransaction();
 
-        if ($affectedRows < 1) {
-            throw new RuntimeException('Unable to update this product right now.');
+        try {
+            MsSqlConsoleDebug::push('BEGIN TRANSACTION (PDO)', [], ['executed' => true]);
+
+            $updateSql = 'UPDATE products
+                          SET product_name = ?, description = ?, stock_qty = ?, price = ?, updated_at = SYSDATETIME()
+                          WHERE product_id = ?';
+            $updateBindings = [$productName, $description, $stockQty, $price, $productId];
+            $affectedRows = $connection->update($updateSql, $updateBindings);
+            MsSqlConsoleDebug::push($updateSql, $updateBindings, ['affected_rows' => $affectedRows]);
+
+            if ($affectedRows < 1) {
+                throw new RuntimeException('Unable to update this product right now.');
+            }
+
+            $deleteMappingsSql = 'DELETE FROM product_categories WHERE product_id = ?';
+            $deleteMappingsBindings = [$productId];
+            $deletedMappings = $connection->delete($deleteMappingsSql, $deleteMappingsBindings);
+            MsSqlConsoleDebug::push($deleteMappingsSql, $deleteMappingsBindings, ['affected_rows' => $deletedMappings]);
+
+            $insertMappingSql = 'INSERT INTO product_categories (product_id, category_id) VALUES (?, ?)';
+            foreach ($validatedCategoryIds as $categoryId) {
+                $insertMappingBindings = [$productId, $categoryId];
+                $connection->insert($insertMappingSql, $insertMappingBindings);
+                MsSqlConsoleDebug::push($insertMappingSql, $insertMappingBindings, ['executed' => true]);
+            }
+
+            $connection->commit();
+            MsSqlConsoleDebug::push('COMMIT TRANSACTION (PDO)', [], ['executed' => true]);
+        } catch (\Throwable $exception) {
+            $connection->rollBack();
+            MsSqlConsoleDebug::push('ROLLBACK TRANSACTION (PDO)', [], ['executed' => true]);
+            throw $exception;
         }
     }
 
@@ -172,5 +255,40 @@ class AdminProductsService
             MsSqlConsoleDebug::push('ROLLBACK TRANSACTION (PDO)', [], ['executed' => true]);
             throw $exception;
         }
+    }
+
+    /**
+     * @param array<int, mixed> $categoryIds
+     * @return array<int, int>
+     */
+    private function resolveValidCategoryIds(array $categoryIds): array
+    {
+        $normalizedCategoryIds = array_values(array_filter(
+            array_unique(array_map(static fn ($id): int => (int) $id, $categoryIds)),
+            static fn (int $id): bool => $id > 0
+        ));
+
+        if ($normalizedCategoryIds === []) {
+            throw new RuntimeException('Select at least one category.');
+        }
+
+        $placeholders = implode(', ', array_fill(0, count($normalizedCategoryIds), '?'));
+        $sql = "SELECT category_id
+                FROM categories
+                WHERE category_id IN ({$placeholders})";
+        $rows = DB::connection('sqlsrv')->select($sql, $normalizedCategoryIds);
+
+        $existingCategoryIds = array_values(array_unique(array_map(
+            static fn (object $row): int => (int) $row->category_id,
+            $rows
+        )));
+
+        MsSqlConsoleDebug::push($sql, $normalizedCategoryIds, ['category_ids' => $existingCategoryIds]);
+
+        if (count($existingCategoryIds) !== count($normalizedCategoryIds)) {
+            throw new RuntimeException('One or more selected categories are invalid.');
+        }
+
+        return $normalizedCategoryIds;
     }
 }
