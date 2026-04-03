@@ -3,6 +3,7 @@
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminProductsController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
@@ -31,8 +32,16 @@ Route::middleware('auth:admin')
             ->name('users');
         Route::get('/categories', [AdminDashboardController::class, 'categories'])
             ->name('categories');
-        Route::get('/products', [AdminDashboardController::class, 'products'])
+        Route::get('/products', [AdminProductsController::class, 'index'])
             ->name('products');
+        Route::post('/products', [AdminProductsController::class, 'store'])
+            ->name('products.store');
+        Route::patch('/products/{productId}', [AdminProductsController::class, 'update'])
+            ->whereNumber('productId')
+            ->name('products.update');
+        Route::delete('/products/{productId}', [AdminProductsController::class, 'destroy'])
+            ->whereNumber('productId')
+            ->name('products.destroy');
         Route::get('/orders', [AdminDashboardController::class, 'orders'])
             ->name('orders');
         Route::get('/returns', [AdminDashboardController::class, 'returns'])
