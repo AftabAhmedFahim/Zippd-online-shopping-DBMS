@@ -3,8 +3,8 @@
 namespace App\Services;
 
 use App\Support\MsSqlConsoleDebug;
+use App\Support\ProductImagePath;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 class ProductService
 {
@@ -64,7 +64,7 @@ class ProductService
             $item['categories'] = $categoryNames === ''
                 ? []
                 : array_values(array_filter(array_map('trim', explode(',', $categoryNames))));
-            $item['image_path'] = $this->resolveProductImagePath((string) ($item['product_name'] ?? ''));
+            $item['image_path'] = ProductImagePath::resolve((string) ($item['product_name'] ?? ''));
 
             return $item;
         }, $rows);
@@ -101,24 +101,5 @@ class ProductService
             'price_desc' => 'p.price DESC, p.product_id DESC',
             default => 'p.price ASC, p.product_id DESC',
         };
-    }
-
-    private function resolveProductImagePath(string $productName): string
-    {
-        $slug = Str::slug($productName);
-        $candidates = [
-            "images/products/{$slug}.jpg",
-            "images/products/{$slug}.jpeg",
-            "images/products/{$slug}.png",
-            "images/products/{$slug}.webp",
-        ];
-
-        foreach ($candidates as $candidate) {
-            if (file_exists(public_path($candidate))) {
-                return $candidate;
-            }
-        }
-
-        return 'images/products/placeholder.svg';
     }
 }

@@ -7,6 +7,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReturnController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -60,6 +61,18 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard/orders', [OrderController::class, 'index'])
         ->middleware('verified')
         ->name('dashboard.orders');
+    Route::get('/dashboard/orders/{orderId}/items/{productId}/return', [ReturnController::class, 'create'])
+        ->middleware('verified')
+        ->name('returns.create');
+    Route::post('/dashboard/orders/{orderId}/items/{productId}/return', [ReturnController::class, 'store'])
+        ->middleware('verified')
+        ->name('returns.store');
+    Route::get('/dashboard/returns/{returnId}', [ReturnController::class, 'show'])
+        ->middleware('verified')
+        ->name('returns.show');
+    Route::delete('/dashboard/returns/{returnId}', [ReturnController::class, 'destroy'])
+        ->middleware('verified')
+        ->name('returns.destroy');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

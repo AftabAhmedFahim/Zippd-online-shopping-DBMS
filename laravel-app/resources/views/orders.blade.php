@@ -74,6 +74,12 @@
                 </div>
             @endif
 
+            @if(session('order_error'))
+                <div class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                    {{ session('order_error') }}
+                </div>
+            @endif
+
             <section class="catalog-header rounded-3xl px-7 py-7 md:px-9 md:py-8">
                 <p class="font-roboto text-xs uppercase tracking-[0.26em] text-black/45">Order Section</p>
                 <h1 class="catalog-heading font-mono text-[40px] leading-[0.94] tracking-[-0.02em]">Order Details</h1>
@@ -140,6 +146,7 @@
                                     <th class="px-2 py-3">Quantity</th>
                                     <th class="px-2 py-3">Unit Price</th>
                                     <th class="px-2 py-3">Line Total</th>
+                                    <th class="px-2 py-3 text-right">Action</th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -149,6 +156,23 @@
                                         <td class="px-2 py-3">{{ $item['quantity'] }}</td>
                                         <td class="px-2 py-3">{{ $item['unit_price_formatted'] }}</td>
                                         <td class="px-2 py-3">{{ $item['line_total_formatted'] }}</td>
+                                        <td class="px-2 py-3 text-right">
+                                            @if($status === 'delivered' && empty($item['return_code']))
+                                                <a href="{{ route('returns.create', ['orderId' => $order['order_id'], 'productId' => $item['product_id']]) }}"
+                                                   class="catalog-return-link inline-flex items-center rounded-xl px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] transition">
+                                                    Return
+                                                </a>
+                                            @elseif(!empty($item['return_code']))
+                                                <a href="{{ route('returns.show', ['returnId' => $item['return_id']]) }}"
+                                                   class="catalog-return-link inline-flex items-center rounded-xl px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] transition">
+                                                    Return Status
+                                                </a>
+                                            @else
+                                                <span class="text-xs font-semibold uppercase tracking-[0.16em] text-black/35">
+                                                    Unavailable
+                                                </span>
+                                            @endif
+                                        </td>
                                     </tr>
                                 @endforeach
                                 </tbody>
