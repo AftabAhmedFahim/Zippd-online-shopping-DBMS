@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Support\MsSqlConsoleDebug;
+use App\Support\ProductImagePath;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
@@ -179,10 +180,14 @@ class OrderService
                         p.product_name,
                         oi.quantity,
                         oi.unit_price,
-                        oi.line_total
+                        oi.line_total,
+                        r.return_id,
+                        r.return_code,
+                        r.status AS return_status
                      FROM order_items oi
                      INNER JOIN orders o ON o.order_id = oi.order_id
                      INNER JOIN products p ON p.product_id = oi.product_id
+                     LEFT JOIN returns r ON r.order_id = oi.order_id AND r.product_id = oi.product_id
                      WHERE o.user_id = ?
                      ORDER BY oi.order_id DESC, p.product_name ASC';
         $itemsBindings = [$userId];
@@ -199,11 +204,15 @@ class OrderService
             $itemsByOrderId[$orderId][] = [
                 'product_id' => (int) $item['product_id'],
                 'product_name' => (string) $item['product_name'],
+                'image_path' => ProductImagePath::resolve((string) $item['product_name']),
                 'quantity' => (int) $item['quantity'],
                 'unit_price' => $unitPrice,
                 'unit_price_formatted' => $this->formatMoney($unitPrice),
                 'line_total' => $lineTotal,
                 'line_total_formatted' => $this->formatMoney($lineTotal),
+                'return_id' => isset($item['return_id']) ? (int) $item['return_id'] : null,
+                'return_code' => isset($item['return_code']) ? (string) $item['return_code'] : null,
+                'return_status' => isset($item['return_status']) ? (string) $item['return_status'] : null,
             ];
         }
 
