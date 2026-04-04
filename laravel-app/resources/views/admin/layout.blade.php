@@ -13,6 +13,9 @@
     $trimmedName = trim($displayName);
     $avatarLetter = $trimmedName !== '' ? strtoupper(substr($trimmedName, 0, 1)) : 'A';
     $activeTab = $activeTab ?? 'dashboard';
+    $contentContainerClass = $activeTab === 'orders'
+        ? 'mx-auto max-w-[1700px] space-y-6'
+        : 'mx-auto max-w-6xl space-y-6';
 @endphp
 
 <div class="min-h-screen">
@@ -143,7 +146,7 @@
     </header>
 
     <main class="dashboard-fade-up min-w-0 px-5 py-6 md:px-10 md:py-8">
-        <div class="mx-auto max-w-6xl space-y-6">
+        <div class="{{ $contentContainerClass }}">
             @yield('admin-content')
         </div>
     </main>
