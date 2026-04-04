@@ -2,11 +2,13 @@
 
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\Admin\AdminCategoriesController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReturnController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -28,8 +30,16 @@ Route::middleware('auth:admin')
             ->name('dashboard');
         Route::get('/users', [AdminDashboardController::class, 'users'])
             ->name('users');
-        Route::get('/categories', [AdminDashboardController::class, 'categories'])
+        Route::get('/categories', [AdminCategoriesController::class, 'index'])
             ->name('categories');
+        Route::post('/categories', [AdminCategoriesController::class, 'store'])
+            ->name('categories.store');
+        Route::put('/categories/{categoryId}', [AdminCategoriesController::class, 'update'])
+            ->whereNumber('categoryId')
+            ->name('categories.update');
+        Route::get('/categories/{categoryId}/products', [AdminCategoriesController::class, 'products'])
+            ->whereNumber('categoryId')
+            ->name('categories.products');
         Route::get('/products', [AdminDashboardController::class, 'products'])
             ->name('products');
         Route::get('/orders', [AdminDashboardController::class, 'orders'])

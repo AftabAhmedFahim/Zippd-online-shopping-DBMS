@@ -28,12 +28,7 @@ class AdminDashboardController extends Controller
             'deletionUpdates' => $this->adminService->getUserDeletionUpdates(),
         ]);
     }
-
-    public function categories(Request $request): View
-    {
-        return $this->renderPage($request, 'admin.categories', 'categories');
-    }
-
+    
     public function products(Request $request): View
     {
         return $this->renderPage($request, 'admin.products', 'products');
