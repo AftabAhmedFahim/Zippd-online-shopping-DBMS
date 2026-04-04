@@ -29,6 +29,11 @@ class AdminDashboardController extends Controller
         ]);
     }
 
+    public function products(Request $request): View
+    {
+        return $this->renderPage($request, 'admin.products', 'products');
+    }
+
     public function categories(Request $request): View
     {
         return $this->renderPage($request, 'admin.categories', 'categories');
