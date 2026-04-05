@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\AdminCategoriesController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminOrdersController;
 use App\Http\Controllers\Admin\AdminProductsController;
+use App\Http\Controllers\Admin\AdminReturnsController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
@@ -77,8 +78,12 @@ Route::middleware('auth:admin')
             ->whereNumber('orderId')
             ->name('orders.update-payment');
 
-        Route::get('/returns', [AdminDashboardController::class, 'returns'])
+        Route::get('/returns', [AdminReturnsController::class, 'index'])
             ->name('returns');
+
+        Route::patch('/returns/{returnId}', [AdminReturnsController::class, 'update'])
+            ->whereNumber('returnId')
+            ->name('returns.update');
     });
 
 Route::middleware('auth')->group(function () {
