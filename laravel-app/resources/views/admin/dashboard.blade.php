@@ -2,32 +2,21 @@
 
 @section('admin-content')
 @php
-    $stats = [
-        ['title' => 'Total Users', 'value' => '1,234', 'tone' => 'cyan', 'icon' => 'user'],
-        ['title' => 'Total Categories', 'value' => '45', 'tone' => 'green', 'icon' => 'list'],
-        ['title' => 'Total Products', 'value' => '892', 'tone' => 'blue', 'icon' => 'box'],
-        ['title' => 'Total Orders', 'value' => '3,567', 'tone' => 'rose', 'icon' => 'cart'],
+    $stats = $stats ?? [
+        ['title' => 'Total Users', 'value' => '0', 'tone' => 'cyan', 'icon' => 'user'],
+        ['title' => 'Total Categories', 'value' => '0', 'tone' => 'green', 'icon' => 'list'],
+        ['title' => 'Total Products', 'value' => '0', 'tone' => 'blue', 'icon' => 'box'],
+        ['title' => 'Total Orders', 'value' => '0', 'tone' => 'rose', 'icon' => 'cart'],
     ];
 
-    $recentOrders = [
-        ['id' => 'ORD3568', 'user' => 'John Smith', 'amount' => '$249.97', 'status' => 'Processing', 'time' => '2 minutes ago'],
-        ['id' => 'ORD3567', 'user' => 'Sarah Johnson', 'amount' => '$579.98', 'status' => 'Confirmed', 'time' => '15 minutes ago'],
-        ['id' => 'ORD3566', 'user' => 'Michael Brown', 'amount' => '$129.99', 'status' => 'Processing', 'time' => '32 minutes ago'],
-        ['id' => 'ORD3565', 'user' => 'Emily Davis', 'amount' => '$84.98', 'status' => 'Confirmed', 'time' => '1 hour ago'],
-    ];
-
-    $newUsers = [
-        ['id' => 'USR1235', 'name' => 'Alex Thompson', 'email' => 'alex.t@email.com', 'time' => '5 minutes ago'],
-        ['id' => 'USR1234', 'name' => 'Jessica Martinez', 'email' => 'jessica.m@email.com', 'time' => '28 minutes ago'],
-        ['id' => 'USR1233', 'name' => 'David Lee', 'email' => 'david.lee@email.com', 'time' => '1 hour ago'],
-        ['id' => 'USR1232', 'name' => 'Sophie Chen', 'email' => 'sophie.c@email.com', 'time' => '2 hours ago'],
-    ];
+    $recentOrders = $recentOrders ?? [];
+    $newUsers = $newUsers ?? [];
 @endphp
 
 <section class="space-y-2">
     <h1 class="font-mono text-[42px] leading-[0.95] tracking-[-0.02em] text-black">Admin Dashboard</h1>
     <p class="font-roboto text-[15px] text-black/70">
-        Welcome back, {{ $adminInfo['full_name'] ?? 'Admin' }}. This is the UI preview state.
+        Welcome back, {{ $adminInfo['full_name'] ?? 'Admin' }}.
     </p>
 </section>
 
@@ -70,21 +59,34 @@
             <span class="admin-status-badge admin-status-live">Live</span>
         </header>
         <div class="space-y-3 px-6 py-6">
-            @foreach ($recentOrders as $order)
+            @forelse ($recentOrders as $order)
+                @php
+                    $orderStatus = strtolower(trim((string) ($order['status'] ?? 'pending')));
+                    $statusClass = 'admin-status-live';
+                    if ($orderStatus === 'delivered') {
+                        $statusClass = 'admin-status-success';
+                    } elseif ($orderStatus === 'pending') {
+                        $statusClass = 'admin-status-danger';
+                    } elseif ($orderStatus === 'shipped') {
+                        $statusClass = 'admin-status-info';
+                    }
+                @endphp
                 <div class="admin-list-card admin-list-card-rose">
                     <div>
                         <div class="flex items-center gap-2">
-                            <p class="font-roboto text-sm font-semibold text-black">{{ $order['id'] }}</p>
-                            <span class="admin-status-badge {{ $order['status'] === 'Confirmed' ? 'admin-status-success' : 'admin-status-live' }}">
-                                {{ $order['status'] }}
+                            <p class="font-roboto text-sm font-semibold text-black">{{ $order['order_code'] ?? ('ORD' . (int) ($order['order_id'] ?? 0)) }}</p>
+                            <span class="admin-status-badge {{ $statusClass }}">
+                                {{ $order['status_label'] ?? ucfirst((string) ($order['status'] ?? 'pending')) }}
                             </span>
                         </div>
-                        <p class="font-roboto mt-1 text-sm text-black/70">{{ $order['user'] }}</p>
-                        <p class="font-roboto text-xs text-black/50">{{ $order['time'] }}</p>
+                        <p class="font-roboto mt-1 text-sm text-black/70">{{ $order['user_name'] ?? 'Unknown User' }}</p>
+                        <p class="font-roboto text-xs text-black/50">{{ $order['time_ago'] ?? 'Just now' }}</p>
                     </div>
-                    <p class="font-mono text-sm font-semibold text-rose-700">{{ $order['amount'] }}</p>
+                    <p class="font-mono text-sm font-semibold text-rose-700">{{ $order['amount_formatted'] ?? '$0.00' }}</p>
                 </div>
-            @endforeach
+            @empty
+                <p class="font-roboto text-sm text-black/60">No recent orders found.</p>
+            @endforelse
         </div>
     </article>
 
@@ -94,19 +96,25 @@
             <span class="admin-status-badge admin-status-live">Live</span>
         </header>
         <div class="space-y-3 px-6 py-6">
-            @foreach ($newUsers as $user)
+            @forelse ($newUsers as $user)
+                @php
+                    $userName = (string) ($user['name'] ?? 'User');
+                    $avatarInitial = strtoupper(substr($userName, 0, 1));
+                @endphp
                 <div class="admin-list-card admin-list-card-cyan">
                     <div class="flex items-center gap-3">
-                        <span class="admin-avatar-mini">{{ strtoupper(substr($user['name'], 0, 1)) }}</span>
+                        <span class="admin-avatar-mini">{{ $avatarInitial }}</span>
                         <div>
-                            <p class="font-roboto text-sm font-semibold text-black">{{ $user['name'] }}</p>
-                            <p class="font-roboto text-xs text-black/70">{{ $user['email'] }}</p>
-                            <p class="font-roboto text-xs text-black/50">{{ $user['time'] }}</p>
+                            <p class="font-roboto text-sm font-semibold text-black">{{ $userName }}</p>
+                            <p class="font-roboto text-xs text-black/70">{{ $user['email'] ?? '-' }}</p>
+                            <p class="font-roboto text-xs text-black/50">{{ $user['time_ago'] ?? 'Just now' }}</p>
                         </div>
                     </div>
-                    <span class="admin-status-badge admin-status-outline">{{ $user['id'] }}</span>
+                    <span class="admin-status-badge admin-status-outline">{{ $user['user_code'] ?? ('USR' . (int) ($user['user_id'] ?? 0)) }}</span>
                 </div>
-            @endforeach
+            @empty
+                <p class="font-roboto text-sm text-black/60">No new users found.</p>
+            @endforelse
         </div>
     </article>
 </section>

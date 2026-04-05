@@ -3,19 +3,35 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\AdminDashboardService;
 use App\Services\AdminService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class AdminDashboardController extends Controller
 {
-    public function __construct(private readonly AdminService $adminService)
+    public function __construct(
+        private readonly AdminService $adminService,
+        private readonly AdminDashboardService $adminDashboardService
+    )
     {
     }
 
     public function index(Request $request): View
     {
-        return $this->renderPage($request, 'admin.dashboard', 'dashboard');
+        $dashboardData = $this->adminDashboardService->getDashboardData();
+        $totals = $dashboardData['totals'];
+
+        return $this->renderPage($request, 'admin.dashboard', 'dashboard', [
+            'stats' => [
+                ['title' => 'Total Users', 'value' => number_format((int) ($totals['total_users'] ?? 0)), 'tone' => 'cyan', 'icon' => 'user'],
+                ['title' => 'Total Categories', 'value' => number_format((int) ($totals['total_categories'] ?? 0)), 'tone' => 'green', 'icon' => 'list'],
+                ['title' => 'Total Products', 'value' => number_format((int) ($totals['total_products'] ?? 0)), 'tone' => 'blue', 'icon' => 'box'],
+                ['title' => 'Total Orders', 'value' => number_format((int) ($totals['total_orders'] ?? 0)), 'tone' => 'rose', 'icon' => 'cart'],
+            ],
+            'recentOrders' => $dashboardData['recent_orders'],
+            'newUsers' => $dashboardData['new_users'],
+        ]);
     }
 
     public function users(Request $request): View
