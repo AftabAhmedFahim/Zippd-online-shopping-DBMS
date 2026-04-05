@@ -13,7 +13,7 @@
     $trimmedName = trim($displayName);
     $avatarLetter = $trimmedName !== '' ? strtoupper(substr($trimmedName, 0, 1)) : 'A';
     $activeTab = $activeTab ?? 'dashboard';
-    $contentContainerClass = $activeTab === 'orders'
+    $contentContainerClass = in_array($activeTab, ['orders', 'returns'], true)
         ? 'mx-auto max-w-[1700px] space-y-6'
         : 'mx-auto max-w-6xl space-y-6';
 @endphp
