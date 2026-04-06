@@ -95,6 +95,16 @@ Route::middleware('auth')->group(function () {
         ->middleware('verified')
         ->name('products');
 
+    Route::post('/products/{productId}/reviews', [ProductController::class, 'storeReview'])
+        ->middleware('verified')
+        ->whereNumber('productId')
+        ->name('products.reviews.store');
+
+    Route::get('/products/{productId}/reviews', [ProductController::class, 'reviews'])
+        ->middleware('verified')
+        ->whereNumber('productId')
+        ->name('products.reviews.index');
+
     Route::post('/cart/add/{productId}', [CartController::class, 'add'])
         ->middleware('verified')
         ->name('cart.add');
