@@ -314,6 +314,59 @@
     margin-bottom: 0.9rem;
 }
 
+.catalog-review-panel {
+    border: 1px solid var(--border-soft);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.86), rgba(248, 244, 234, 0.88));
+}
+
+.catalog-star-list {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.catalog-star-btn {
+    border: none;
+    background: transparent;
+    color: #d4d4d4;
+    font-size: 1.75rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: color 180ms ease, transform 180ms ease;
+}
+
+.catalog-star-btn:hover {
+    color: #f59e0b;
+    transform: translateY(-1px);
+}
+
+.catalog-star-btn-active {
+    color: #f59e0b;
+}
+
+.catalog-review-list {
+    border-top: 1px solid var(--border-soft);
+    padding-top: 0.9rem;
+}
+
+.catalog-review-item {
+    border: 1px solid var(--border-soft);
+    background: rgba(255, 255, 255, 0.82);
+}
+
+.catalog-review-meta {
+    margin-bottom: 0.3rem;
+}
+
+.catalog-review-stars {
+    letter-spacing: 0.08em;
+}
+
+.catalog-review-pagination button:disabled {
+    cursor: not-allowed;
+    opacity: 0.56;
+}
+
 @media (min-width: 900px) {
     .catalog-modal-grid {
         grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);

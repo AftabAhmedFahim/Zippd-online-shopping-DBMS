@@ -128,6 +128,21 @@
                         {{ session('cart_error') }}
                     </div>
                 @endif
+                @if(session('review_success'))
+                    <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                        {{ session('review_success') }}
+                    </div>
+                @endif
+                @if(session('review_error'))
+                    <div class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                        {{ session('review_error') }}
+                    </div>
+                @endif
+                @if($errors->has('rating') || $errors->has('review_text'))
+                    <div class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                        {{ $errors->first('rating') ?? $errors->first('review_text') }}
+                    </div>
+                @endif
                 <div x-cloak
                      x-show="flashMessage"
                      class="rounded-xl border px-4 py-3 text-sm"
@@ -222,6 +237,8 @@
                             @foreach($products as $product)
                                 @php
                                     $stockQty = (int) ($product['stock_qty'] ?? 0);
+                                    $averageRating = (float) ($product['average_rating'] ?? 0);
+                                    $reviewCount = (int) ($product['review_count'] ?? 0);
                                     $stockLabel = $stockQty === 0
                                         ? 'Out of stock'
                                         : ($stockQty <= 10 ? 'Low stock: ' . $stockQty : 'In stock: ' . $stockQty);
@@ -236,6 +253,12 @@
                                         'stockClass' => $stockQty === 0
                                             ? 'catalog-stock-out'
                                             : ($stockQty <= 10 ? 'catalog-stock-low' : 'catalog-stock-ok'),
+                                        'averageRating' => round($averageRating, 2),
+                                        'reviewCount' => $reviewCount,
+                                        'userRating' => isset($product['user_rating']) ? (int) $product['user_rating'] : null,
+                                        'userReviewText' => (string) ($product['user_review_text'] ?? ''),
+                                        'reviewAction' => route('products.reviews.store', ['productId' => (int) $product['product_id']]),
+                                        'reviewsUrl' => route('products.reviews.index', ['productId' => (int) $product['product_id']]),
                                     ];
                                 @endphp
                                 <article
@@ -273,19 +296,32 @@
                                             @endforelse
                                         </div>
 
-                                        <div class="flex items-center justify-between gap-4">
+                                        <div class="flex items-start justify-between gap-4">
                                             <div>
                                                 <p class="text-xs uppercase tracking-[0.2em] text-black/45">Price</p>
                                                 <p class="catalog-price font-mono text-2xl leading-none">BDT {{ number_format((float) $product['price'], 2) }}</p>
                                             </div>
-                                            <span @class([
-                                                'inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold',
-                                                'catalog-stock-out' => $stockQty === 0,
-                                                'catalog-stock-low' => $stockQty > 0 && $stockQty <= 10,
-                                                'catalog-stock-ok' => $stockQty > 10,
-                                            ])>
-                                                {{ $stockLabel }}
-                                            </span>
+                                            <div class="space-y-1 text-right">
+                                                @if($reviewCount > 0)
+                                                    <p class="catalog-rating-summary text-xs font-semibold text-black/70">
+                                                        <span class="text-amber-500">&#9733;</span>
+                                                        {{ number_format($averageRating, 1) }}
+                                                        <span class="text-black/45">({{ $reviewCount }} {{ $reviewCount === 1 ? 'review' : 'reviews' }})</span>
+                                                    </p>
+                                                @else
+                                                    <p class="catalog-rating-summary text-xs font-semibold text-black/45">
+                                                        No reviews yet
+                                                    </p>
+                                                @endif
+                                                <span @class([
+                                                    'inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold',
+                                                    'catalog-stock-out' => $stockQty === 0,
+                                                    'catalog-stock-low' => $stockQty > 0 && $stockQty <= 10,
+                                                    'catalog-stock-ok' => $stockQty > 10,
+                                                ])>
+                                                    {{ $stockLabel }}
+                                                </span>
+                                            </div>
                                         </div>
 
                                         <form method="POST"
@@ -389,6 +425,104 @@
                                   :class="selectedProduct.stockClass"
                                   x-text="selectedProduct.stockLabel"></span>
                         </div>
+
+                        <div class="catalog-review-panel rounded-xl p-4">
+                            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-black/45">Customer Rating</p>
+                            <p class="mt-2 text-sm text-black/70"
+                               x-text="selectedProduct.reviewCount > 0
+                                    ? `Average rating: ${Number(selectedProduct.averageRating).toFixed(1)} / 5 (${selectedProduct.reviewCount} review${selectedProduct.reviewCount === 1 ? '' : 's'})`
+                                    : 'Average rating: No reviews yet'">
+                            </p>
+
+                            <form method="POST"
+                                  class="mt-4 space-y-3"
+                                  :action="selectedProduct.reviewAction">
+                                @csrf
+                                <input type="hidden" name="rating" :value="reviewForm.rating" />
+
+                                <div class="catalog-star-list" role="radiogroup" aria-label="Star rating">
+                                    <template x-for="star in starScale" :key="star">
+                                        <button
+                                            type="button"
+                                            class="catalog-star-btn"
+                                            :class="{ 'catalog-star-btn-active': reviewForm.rating >= star }"
+                                            :style="{ color: reviewForm.rating >= star ? '#f59e0b' : '#d4d4d4' }"
+                                            :aria-label="`Rate ${star} star${star === 1 ? '' : 's'}`"
+                                            @click="setReviewRating(star)">
+                                            &#9733;
+                                        </button>
+                                    </template>
+                                </div>
+
+                                <p class="text-xs text-black/55"
+                                   x-text="reviewForm.rating > 0
+                                        ? `${reviewForm.rating} star${reviewForm.rating === 1 ? '' : 's'} selected`
+                                        : 'Select a star rating (required)'">
+                                </p>
+
+                                <div>
+                                    <label for="review-text" class="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-black/55">
+                                        Review (optional)
+                                    </label>
+                                    <textarea
+                                        id="review-text"
+                                        name="review_text"
+                                        maxlength="4000"
+                                        rows="4"
+                                        class="catalog-input w-full px-3 py-2 text-sm"
+                                        placeholder="Write what you liked or disliked (optional)..."
+                                        x-model="reviewForm.reviewText"></textarea>
+                                </div>
+
+                                <button type="submit"
+                                        class="catalog-btn-primary inline-flex w-full items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold transition hover:brightness-110"
+                                        :disabled="reviewForm.rating < 1">
+                                    Save Review
+                                </button>
+                            </form>
+
+                            <div class="catalog-review-list mt-5 space-y-3">
+                                <div class="flex items-center justify-between gap-3">
+                                    <p class="text-xs font-semibold uppercase tracking-[0.16em] text-black/55">Customer Reviews</p>
+                                    <p class="text-xs text-black/50">Max 5 per page</p>
+                                </div>
+
+                                <p class="text-sm text-black/60" x-show="reviews.loading">Loading reviews...</p>
+                                <p class="text-sm text-rose-700" x-show="!reviews.loading && reviews.error" x-text="reviews.error"></p>
+
+                                <template x-if="!reviews.loading && !reviews.error && reviews.items.length === 0">
+                                    <p class="text-sm text-black/60">No reviews yet for this product.</p>
+                                </template>
+
+                                <template x-for="review in reviews.items" :key="review.review_id">
+                                    <article class="catalog-review-item rounded-xl p-3">
+                                        <div class="catalog-review-meta flex items-center justify-between gap-3">
+                                            <p class="text-sm font-semibold text-black/80" x-text="review.reviewer_name"></p>
+                                            <p class="text-xs text-black/45" x-text="review.reviewed_at"></p>
+                                        </div>
+                                        <p class="catalog-review-stars text-sm text-amber-500" x-text="'★'.repeat(review.rating) + '☆'.repeat(5 - review.rating)"></p>
+                                        <p class="mt-1 text-sm leading-relaxed text-black/70"
+                                           x-text="review.review_text && review.review_text.length > 0 ? review.review_text : 'Rated without review text.'"></p>
+                                    </article>
+                                </template>
+
+                                <div class="catalog-review-pagination flex items-center justify-between gap-3 pt-1">
+                                    <button type="button"
+                                            class="catalog-btn-secondary rounded-lg px-3 py-1.5 text-xs font-semibold"
+                                            :disabled="reviews.loading || !reviews.hasPrev"
+                                            @click="loadPreviousReviews()">
+                                        Previous
+                                    </button>
+                                    <p class="text-xs text-black/55" x-text="`Page ${reviews.page}`"></p>
+                                    <button type="button"
+                                            class="catalog-btn-secondary rounded-lg px-3 py-1.5 text-xs font-semibold"
+                                            :disabled="reviews.loading || !reviews.hasNext"
+                                            @click="loadNextReviews()">
+                                        Next
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </article>
@@ -403,6 +537,19 @@
 
         return {
             selectedProduct: null,
+            starScale: [1, 2, 3, 4, 5],
+            reviewForm: {
+                rating: 0,
+                reviewText: '',
+            },
+            reviews: {
+                items: [],
+                page: 1,
+                hasPrev: false,
+                hasNext: false,
+                loading: false,
+                error: '',
+            },
             cartItemCount: Number.isFinite(initialCartItemCount) ? initialCartItemCount : 0,
             cartUniqueCount: Number.isFinite(initialCartUniqueCount) ? initialCartUniqueCount : 0,
             flashMessage: '',
@@ -411,11 +558,88 @@
             flashTimeoutId: null,
             openProduct(product) {
                 this.selectedProduct = product;
+                this.reviewForm.rating = Number(product.userRating ?? 0);
+                this.reviewForm.reviewText = String(product.userReviewText ?? '');
+                this.fetchProductReviews(1);
                 document.body.classList.add('overflow-hidden');
             },
             closeProduct() {
                 this.selectedProduct = null;
+                this.reviews.items = [];
+                this.reviews.page = 1;
+                this.reviews.hasPrev = false;
+                this.reviews.hasNext = false;
+                this.reviews.loading = false;
+                this.reviews.error = '';
                 document.body.classList.remove('overflow-hidden');
+            },
+            setReviewRating(star) {
+                this.reviewForm.rating = Number(star);
+            },
+            loadNextReviews() {
+                if (this.reviews.loading || !this.reviews.hasNext) {
+                    return;
+                }
+
+                this.fetchProductReviews(this.reviews.page + 1);
+            },
+            loadPreviousReviews() {
+                if (this.reviews.loading || !this.reviews.hasPrev) {
+                    return;
+                }
+
+                this.fetchProductReviews(this.reviews.page - 1);
+            },
+            async fetchProductReviews(page = 1) {
+                if (!this.selectedProduct || !this.selectedProduct.reviewsUrl) {
+                    return;
+                }
+
+                const currentProductId = Number(this.selectedProduct.id);
+                const targetPage = Math.max(1, Number(page) || 1);
+                const requestUrl = `${this.selectedProduct.reviewsUrl}?page=${targetPage}`;
+
+                this.reviews.loading = true;
+                this.reviews.error = '';
+
+                try {
+                    const response = await fetch(requestUrl, {
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                        credentials: 'same-origin',
+                    });
+
+                    const contentType = response.headers.get('content-type') || '';
+                    const payload = contentType.includes('application/json')
+                        ? await response.json()
+                        : null;
+
+                    if (!response.ok || !payload || payload.success !== true || !payload.data) {
+                        const message = payload?.message ?? 'Unable to load reviews right now.';
+                        throw new Error(message);
+                    }
+
+                    if (!this.selectedProduct || Number(this.selectedProduct.id) !== currentProductId) {
+                        return;
+                    }
+
+                    this.reviews.items = Array.isArray(payload.data.items) ? payload.data.items : [];
+                    this.reviews.page = Number(payload.data.page ?? targetPage);
+                    this.reviews.hasPrev = Boolean(payload.data.has_prev);
+                    this.reviews.hasNext = Boolean(payload.data.has_next);
+
+                    this.selectedProduct.averageRating = Number(payload.data.average_rating ?? this.selectedProduct.averageRating);
+                    this.selectedProduct.reviewCount = Number(payload.data.review_count ?? this.selectedProduct.reviewCount);
+                } catch (error) {
+                    this.reviews.items = [];
+                    this.reviews.hasPrev = false;
+                    this.reviews.hasNext = false;
+                    this.reviews.error = error?.message || 'Unable to load reviews right now.';
+                } finally {
+                    this.reviews.loading = false;
+                }
             },
             isAdding(productId) {
                 return this.pendingProductIds.includes(productId);
