@@ -38,7 +38,7 @@ class AdminOrdersController extends Controller
     public function updateStatus(Request $request, int $orderId): RedirectResponse
     {
         $validated = $request->validateWithBag('orderStatusUpdate', [
-            'order_status' => ['required', 'string', 'in:pending,shipped,delivered'],
+            'order_status' => ['required', 'string', 'in:pending,confirmed,shipped,delivered'],
             'return_q' => ['nullable', 'string', 'max:255'],
         ]);
 
@@ -65,7 +65,7 @@ class AdminOrdersController extends Controller
     public function update(Request $request, int $orderId): RedirectResponse
     {
         $validated = $request->validateWithBag('orderUpdate', [
-            'order_status' => ['required', 'string', 'in:pending,shipped,delivered'],
+            'order_status' => ['required', 'string', 'in:pending,confirmed,shipped,delivered'],
             'is_paid' => ['required', 'in:0,1'],
             'return_q' => ['nullable', 'string', 'max:255'],
             'edit_order_id' => ['nullable', 'integer'],

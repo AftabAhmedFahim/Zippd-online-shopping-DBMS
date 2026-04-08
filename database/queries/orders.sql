@@ -4,10 +4,19 @@
 
 -- 1) Get orders for a user (latest first)
 -- Used by: OrderService::getOrdersForUser($userId)
-SELECT order_id, order_date, order_status, shipping_address, total_amount, is_paid
-FROM orders
-WHERE user_id = ?
-ORDER BY order_date DESC, order_id DESC;
+SELECT
+    o.order_id,
+    o.order_date,
+    o.order_status,
+    o.shipping_address,
+    o.total_amount,
+    o.is_paid,
+    p.payment_method,
+    p.payment_status
+FROM orders o
+LEFT JOIN payments p ON p.order_id = o.order_id
+WHERE o.user_id = ?
+ORDER BY o.order_date DESC, o.order_id DESC;
 
 -- 2) Get all order items (with product names) for a user's orders
 -- Used by: OrderService::getOrdersForUser($userId)
