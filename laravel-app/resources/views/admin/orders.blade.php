@@ -73,6 +73,8 @@
                     $statusClass = 'admin-status-live';
                     if ($orderStatus === 'delivered') {
                         $statusClass = 'admin-status-success';
+                    } elseif ($orderStatus === 'confirmed') {
+                        $statusClass = 'admin-status-success';
                     } elseif ($orderStatus === 'pending') {
                         $statusClass = 'admin-status-danger';
                     } elseif ($orderStatus === 'shipped') {
@@ -80,6 +82,8 @@
                     }
 
                     $isPaid = (bool) ($order['is_paid'] ?? false);
+                    $paymentStatus = strtolower((string) ($order['payment_status'] ?? ($isPaid ? 'paid' : 'pending')));
+                    $paymentMethod = (string) ($order['payment_method'] ?? '');
                     $statusLabel = ucfirst($orderStatus);
                 @endphp
                 <tr
@@ -105,6 +109,12 @@
                         <span class="admin-status-badge {{ $isPaid ? 'admin-status-success' : 'admin-status-danger' }}">
                             {{ $isPaid ? 'Paid' : 'Unpaid' }}
                         </span>
+                        <div class="mt-1 text-[11px] uppercase tracking-[0.12em] text-black/55">
+                            {{ $paymentMethod !== '' ? str_replace('_', ' ', $paymentMethod) : 'method: n/a' }}
+                            @if($paymentStatus !== '')
+                                | {{ $paymentStatus }}
+                            @endif
+                        </div>
                     </td>
                     <td class="text-right">
                         <button type="button" class="admin-icon-btn admin-icon-btn-edit admin-order-edit-btn" aria-label="Edit order">
@@ -158,6 +168,7 @@
                     class="admin-product-input @if ($errors->orderUpdate->has('order_status')) admin-product-input-error @endif"
                 >
                     <option value="pending" @selected(old('order_status') === 'pending')>Pending</option>
+                    <option value="confirmed" @selected(old('order_status') === 'confirmed')>Confirmed</option>
                     <option value="shipped" @selected(old('order_status') === 'shipped')>Shipped</option>
                     <option value="delivered" @selected(old('order_status') === 'delivered')>Delivered</option>
                 </select>

@@ -26,9 +26,12 @@ class AdminOrdersService
                     o.shipping_address,
                     o.total_amount,
                     o.is_paid,
+                    p.payment_method,
+                    p.payment_status,
                     ISNULL(items.total_items, 0) AS total_items
                 FROM orders o
                 INNER JOIN users u ON u.user_id = o.user_id
+                LEFT JOIN payments p ON p.order_id = o.order_id
                 LEFT JOIN (
                     SELECT
                         oi.order_id,
@@ -42,12 +45,16 @@ class AdminOrdersService
                     OR u.full_name LIKE ?
                     OR u.email LIKE ?
                     OR o.order_status LIKE ?
+                    OR ISNULL(p.payment_status, '') LIKE ?
+                    OR ISNULL(p.payment_method, '') LIKE ?
                     OR o.shipping_address LIKE ?
                     OR CASE WHEN o.is_paid = 1 THEN 'paid' ELSE 'unpaid' END LIKE ?)
                 ORDER BY o.order_date DESC, o.order_id DESC";
 
         $bindings = [
             $searchTerm,
+            $likeValue,
+            $likeValue,
             $likeValue,
             $likeValue,
             $likeValue,
@@ -67,7 +74,7 @@ class AdminOrdersService
     public function updateOrderStatusForAdmin(int $orderId, string $status): void
     {
         $normalizedStatus = strtolower(trim($status));
-        $allowedStatuses = ['pending', 'shipped', 'delivered'];
+        $allowedStatuses = ['pending', 'confirmed', 'shipped', 'delivered'];
 
         if (!in_array($normalizedStatus, $allowedStatuses, true)) {
             throw new RuntimeException('Invalid order status.');
@@ -97,6 +104,7 @@ class AdminOrdersService
         MsSqlConsoleDebug::push($sql, $bindings, ['affected_rows' => $affectedRows]);
 
         if ($affectedRows > 0) {
+            $this->syncPaymentState($orderId, $isPaid);
             return;
         }
 
@@ -106,7 +114,7 @@ class AdminOrdersService
     public function updateOrderForAdmin(int $orderId, string $status, bool $isPaid): void
     {
         $normalizedStatus = strtolower(trim($status));
-        $allowedStatuses = ['pending', 'shipped', 'delivered'];
+        $allowedStatuses = ['pending', 'confirmed', 'shipped', 'delivered'];
 
         if (!in_array($normalizedStatus, $allowedStatuses, true)) {
             throw new RuntimeException('Invalid order status.');
@@ -120,6 +128,7 @@ class AdminOrdersService
         MsSqlConsoleDebug::push($sql, $bindings, ['affected_rows' => $affectedRows]);
 
         if ($affectedRows > 0) {
+            $this->syncPaymentState($orderId, $isPaid);
             return;
         }
 
@@ -138,5 +147,49 @@ class AdminOrdersService
         if ($existingRow === null) {
             throw new RuntimeException('Order not found.');
         }
+    }
+
+    private function syncPaymentState(int $orderId, bool $isPaid): void
+    {
+        $orderSql = 'SELECT order_id, total_amount FROM orders WHERE order_id = ?';
+        $orderBindings = [$orderId];
+        $orderRow = DB::connection('sqlsrv')->selectOne($orderSql, $orderBindings);
+        MsSqlConsoleDebug::push($orderSql, $orderBindings, $orderRow ? (array) $orderRow : null);
+
+        if ($orderRow === null) {
+            return;
+        }
+
+        $existingPaymentSql = 'SELECT payment_id FROM payments WHERE order_id = ?';
+        $existingPaymentBindings = [$orderId];
+        $existingPaymentRow = DB::connection('sqlsrv')->selectOne($existingPaymentSql, $existingPaymentBindings);
+        MsSqlConsoleDebug::push($existingPaymentSql, $existingPaymentBindings, $existingPaymentRow ? (array) $existingPaymentRow : null);
+
+        $paymentStatus = $isPaid ? 'paid' : 'pending';
+        if ($existingPaymentRow !== null) {
+            $updatePaymentSql = "UPDATE payments
+                                 SET payment_status = ?,
+                                     payment_date = CASE WHEN ? = 'paid' THEN COALESCE(payment_date, SYSDATETIME()) ELSE NULL END,
+                                     updated_at = SYSDATETIME()
+                                 WHERE order_id = ?";
+            $updatePaymentBindings = [$paymentStatus, $paymentStatus, $orderId];
+            $updatedRows = DB::connection('sqlsrv')->update($updatePaymentSql, $updatePaymentBindings);
+            MsSqlConsoleDebug::push($updatePaymentSql, $updatePaymentBindings, ['affected_rows' => $updatedRows]);
+            return;
+        }
+
+        $insertPaymentSql = 'INSERT INTO payments
+                             (order_id, amount, payment_date, payment_method, gateway, payment_status, failure_reason, created_at, updated_at)
+                             VALUES (?, ?, CASE WHEN ? = \'paid\' THEN SYSDATETIME() ELSE NULL END, ?, ?, ?, NULL, SYSDATETIME(), SYSDATETIME())';
+        $insertPaymentBindings = [
+            $orderId,
+            (float) $orderRow->total_amount,
+            $paymentStatus,
+            'cash_on_delivery',
+            'cash_on_delivery',
+            $paymentStatus,
+        ];
+        $inserted = DB::connection('sqlsrv')->insert($insertPaymentSql, $insertPaymentBindings);
+        MsSqlConsoleDebug::push($insertPaymentSql, $insertPaymentBindings, ['inserted' => $inserted]);
     }
 }

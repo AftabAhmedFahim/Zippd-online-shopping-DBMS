@@ -145,7 +145,7 @@
                     <p class="catalog-price font-mono text-2xl">{{ $cartDetails['total_amount_formatted'] }}</p>
                 </div>
 
-                <form method="POST" action="{{ route('checkout.confirm') }}" class="mt-6 space-y-4">
+                <form id="checkout-form" method="POST" action="{{ route('checkout.confirm') }}" class="mt-6 space-y-4">
                     @csrf
                     <div>
                         <label for="shipping_address" class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-black/50">
@@ -158,11 +158,44 @@
                                   required>{{ $defaultShippingAddress }}</textarea>
                     </div>
 
+                    @php($selectedPaymentMethod = old('payment_method', 'cash_on_delivery'))
+                    <div>
+                        <p class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-black/50">
+                            Payment Method
+                        </p>
+                        <div class="space-y-2">
+                            <label class="flex items-start gap-3 rounded-xl border border-black/10 bg-white/70 px-4 py-3">
+                                <input type="radio"
+                                       name="payment_method"
+                                       value="cash_on_delivery"
+                                       class="mt-1"
+                                       @checked($selectedPaymentMethod === 'cash_on_delivery')>
+                                <span>
+                                    <span class="block text-sm font-semibold text-black">Cash on Delivery</span>
+                                    <span class="block text-xs text-black/55">Order will be confirmed instantly. Payment will be collected at delivery.</span>
+                                </span>
+                            </label>
+                            <label class="flex items-start gap-3 rounded-xl border border-black/10 bg-white/70 px-4 py-3">
+                                <input type="radio"
+                                       name="payment_method"
+                                       value="online"
+                                       class="mt-1"
+                                       @checked($selectedPaymentMethod === 'online')>
+                                <span>
+                                    <span class="block text-sm font-semibold text-black">Online Payment (Stripe)</span>
+                                    <span class="block text-xs text-black/55">You will be redirected to secure Stripe checkout. Order is confirmed after successful payment.</span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
                     <div class="flex flex-wrap gap-3">
                         <button type="submit"
+                                id="checkout-submit"
+                                data-loading-text="Processing..."
                                 class="catalog-btn-primary rounded-xl px-5 py-2.5 text-sm font-semibold shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
                                 @disabled(!$cartDetails['can_checkout'])>
-                            Confirm Order
+                            Place Order
                         </button>
                         <a href="{{ route('products') }}"
                            class="catalog-btn-secondary inline-flex items-center rounded-xl px-5 py-2.5 text-sm font-semibold transition hover:bg-[#f9f4e5]">
@@ -175,7 +208,38 @@
     </main>
 </div>
 
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const checkoutForm = document.getElementById('checkout-form');
+    if (!checkoutForm) {
+        return;
+    }
+
+    let submitting = false;
+
+    checkoutForm.addEventListener('submit', (event) => {
+        if (submitting) {
+            event.preventDefault();
+            return;
+        }
+
+        const submitButton = document.getElementById('checkout-submit');
+        if (!(submitButton instanceof HTMLButtonElement)) {
+            submitting = true;
+            return;
+        }
+
+        if (submitButton.disabled) {
+            return;
+        }
+
+        submitting = true;
+        submitButton.textContent = submitButton.dataset.loadingText || 'Processing...';
+        submitButton.disabled = true;
+    });
+});
+</script>
+
 @include('partials.mssql-console-debug')
 </body>
 </html>
-

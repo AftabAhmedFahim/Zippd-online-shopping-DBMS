@@ -20,7 +20,12 @@ class OrderService
      *     items:array<int,array<string,mixed>>
      * }
      */
-    public function confirmOrder(int $userId, string $shippingAddress, array $cartQuantities): array
+    public function confirmOrder(
+        int $userId,
+        string $shippingAddress,
+        array $cartQuantities,
+        string $initialOrderStatus = 'pending'
+    ): array
     {
         $cart = $this->normalizeCartQuantities($cartQuantities);
         if ($cart === []) {
@@ -30,6 +35,12 @@ class OrderService
         $shippingAddress = trim($shippingAddress);
         if ($shippingAddress === '') {
             throw new RuntimeException('Shipping address is required to place an order.');
+        }
+
+        $normalizedStatus = strtolower(trim($initialOrderStatus));
+        $allowedInitialStatuses = ['pending', 'confirmed'];
+        if (!in_array($normalizedStatus, $allowedInitialStatuses, true)) {
+            throw new RuntimeException('Invalid order confirmation status.');
         }
 
         $connection = DB::connection('sqlsrv');
@@ -82,7 +93,7 @@ class OrderService
             }
 
             $totalAmount = round($totalAmount, 2);
-            $orderStatus = 'pending';
+            $orderStatus = $normalizedStatus;
 
             $insertOrderSql = 'INSERT INTO orders (user_id, order_date, order_status, shipping_address, total_amount, is_paid, created_at, updated_at)
                                OUTPUT INSERTED.order_id AS order_id
@@ -162,10 +173,19 @@ class OrderService
      */
     public function getOrdersForUser(int $userId): array
     {
-        $ordersSql = 'SELECT order_id, order_date, order_status, shipping_address, total_amount, is_paid
-                      FROM orders
-                      WHERE user_id = ?
-                      ORDER BY order_date DESC, order_id DESC';
+        $ordersSql = 'SELECT
+                        o.order_id,
+                        o.order_date,
+                        o.order_status,
+                        o.shipping_address,
+                        o.total_amount,
+                        o.is_paid,
+                        p.payment_method,
+                        p.payment_status
+                      FROM orders o
+                      LEFT JOIN payments p ON p.order_id = o.order_id
+                      WHERE o.user_id = ?
+                      ORDER BY o.order_date DESC, o.order_id DESC';
         $ordersBindings = [$userId];
         $orderRows = DB::connection('sqlsrv')->select($ordersSql, $ordersBindings);
         MsSqlConsoleDebug::push($ordersSql, $ordersBindings, array_map(static fn ($row) => (array) $row, $orderRows));
@@ -230,6 +250,8 @@ class OrderService
                 'total_amount' => $totalAmount,
                 'total_amount_formatted' => $this->formatMoney($totalAmount),
                 'is_paid' => (bool) $order['is_paid'],
+                'payment_method' => isset($order['payment_method']) ? (string) $order['payment_method'] : null,
+                'payment_status' => isset($order['payment_status']) ? (string) $order['payment_status'] : null,
                 'items' => $itemsByOrderId[$orderId] ?? [],
             ];
         }

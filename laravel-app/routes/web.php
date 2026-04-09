@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\AdminProductsController;
 use App\Http\Controllers\Admin\AdminReturnsController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReturnController;
@@ -86,6 +87,9 @@ Route::middleware('auth:admin')
             ->name('returns.update');
     });
 
+Route::post('/stripe/webhook', [PaymentController::class, 'webhook'])
+    ->name('stripe.webhook');
+
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->middleware('verified')
@@ -120,6 +124,14 @@ Route::middleware('auth')->group(function () {
     Route::post('/checkout/confirm', [CheckoutController::class, 'confirm'])
         ->middleware('verified')
         ->name('checkout.confirm');
+
+    Route::get('/checkout/success', [PaymentController::class, 'success'])
+        ->middleware('verified')
+        ->name('checkout.success');
+
+    Route::get('/checkout/cancel', [PaymentController::class, 'cancel'])
+        ->middleware('verified')
+        ->name('checkout.cancel');
 
     Route::get('/dashboard/orders', [OrderController::class, 'index'])
         ->middleware('verified')

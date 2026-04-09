@@ -104,11 +104,14 @@
                     @php
                         $status = strtolower((string) $order['order_status']);
                         $statusClass = match ($status) {
-                            'delivered' => 'catalog-stock-ok',
+                            'delivered', 'confirmed' => 'catalog-stock-ok',
                             'shipped', 'in_transit' => 'catalog-stock-low',
                             'cancelled', 'failed' => 'catalog-stock-out',
                             default => 'catalog-stock-low',
                         };
+                        $paymentStatus = strtolower((string) ($order['payment_status'] ?? ($order['is_paid'] ? 'paid' : 'pending')));
+                        $paymentMethodRaw = (string) ($order['payment_method'] ?? '');
+                        $paymentMethod = $paymentMethodRaw !== '' ? ucwords(str_replace('_', ' ', $paymentMethodRaw)) : 'Not set';
                     @endphp
                     <section class="catalog-filters rounded-2xl p-6 md:p-7">
                         <div class="flex flex-wrap items-center justify-between gap-3 border-b border-black/10 pb-4">
@@ -121,7 +124,7 @@
                             </span>
                         </div>
 
-                        <div class="mt-4 grid gap-4 text-sm md:grid-cols-3">
+                        <div class="mt-4 grid gap-4 text-sm md:grid-cols-4">
                             <div>
                                 <p class="text-xs uppercase tracking-[0.18em] text-black/45">Order Date</p>
                                 <p class="mt-1 font-medium text-black">
@@ -135,6 +138,13 @@
                             <div>
                                 <p class="text-xs uppercase tracking-[0.18em] text-black/45">Total Amount</p>
                                 <p class="mt-1 font-mono text-xl text-black">{{ $order['total_amount_formatted'] }}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs uppercase tracking-[0.18em] text-black/45">Payment</p>
+                                <p class="mt-1 font-medium text-black">{{ $paymentMethod }}</p>
+                                <p class="mt-1 text-xs uppercase tracking-[0.12em] {{ $paymentStatus === 'paid' ? 'text-emerald-700' : 'text-amber-700' }}">
+                                    {{ ucfirst($paymentStatus) }}
+                                </p>
                             </div>
                         </div>
 
