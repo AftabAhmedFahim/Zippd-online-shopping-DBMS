@@ -83,7 +83,7 @@
                             Cart currently has {{ $cartItemCount }} item{{ $cartItemCount === 1 ? '' : 's' }}.
                         </p>
                     </div>
-                    <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold {{ $returnStatusClass }}">
+                    <span class="inline-flex items-center rounded-full px-4 py-2 text-[1.4rem] font-bold uppercase tracking-[0.08em] md:text-[22px] {{ $returnStatusClass }}">
                         {{ ucfirst((string) $return['status']) }}
                     </span>
                 </div>

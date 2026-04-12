@@ -143,15 +143,6 @@
                         {{ $errors->first('rating') ?? $errors->first('review_text') }}
                     </div>
                 @endif
-                <div x-cloak
-                     x-show="flashMessage"
-                     class="rounded-xl border px-4 py-3 text-sm"
-                     :class="flashType === 'success'
-                        ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                        : 'border-rose-200 bg-rose-50 text-rose-700'"
-                     x-text="flashMessage">
-                </div>
-
                 <nav aria-label="Breadcrumb" class="catalog-breadcrumb catalog-enter catalog-enter-1">
                     <ol class="flex flex-wrap items-center gap-2 text-sm">
                         <li>
@@ -205,11 +196,11 @@
                                 <option value="price_desc" @selected($selectedSort === 'price_desc')>Price: High to Low</option>
                             </select>
                             <a href="{{ route('checkout.show') }}"
-                               class="catalog-checkout-btn mt-3 inline-flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-sm font-semibold transition hover:brightness-110">
+                               class="catalog-checkout-btn mt-3 inline-flex w-full items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold tracking-[0.08em] uppercase transition hover:brightness-110">
                                 <span>Checkout</span>
-                                <span class="rounded-full bg-white/20 px-2.5 py-0.5 text-xs font-semibold"
-                                      x-text="`${cartItemCount} item${cartItemCount === 1 ? '' : 's'}`">
-                                    {{ $cartItemCount }} items
+                                <span class="catalog-checkout-count"
+                                     x-text="cartItemCount">
+                                    {{ $cartItemCount }}
                                 </span>
                             </a>
                             <p class="mt-2 text-xs text-black/50"
@@ -528,6 +519,44 @@
             </article>
         </template>
     </div>
+
+<div x-cloak
+     x-show="flashMessage"
+     x-transition:enter="transition ease-out duration-300"
+     x-transition:enter-start="opacity-0 translate-y-3 sm:translate-y-0 sm:translate-x-3"
+     x-transition:enter-end="opacity-100 translate-y-0 sm:translate-x-0"
+     x-transition:leave="transition ease-in duration-200"
+     x-transition:leave-start="opacity-100 translate-y-0 sm:translate-x-0"
+     x-transition:leave-end="opacity-0 translate-y-2 sm:translate-y-0 sm:translate-x-2"
+     class="pointer-events-none fixed inset-x-4 top-4 z-[110] flex justify-center">
+    <div class="pointer-events-auto w-full max-w-sm overflow-hidden rounded-2xl border shadow-2xl ring-1 ring-black/5"
+         :class="flashType === 'success'
+            ? 'border-emerald-200 bg-white'
+            : 'border-[#efc7c7] bg-white'">
+        <div class="flex items-start gap-3 px-4 py-4"
+             :class="flashType === 'success'
+                ? 'bg-white text-emerald-700'
+                : 'bg-[#fff1ee] text-rose-800'">
+            <div class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+                 :class="flashType === 'success'
+                    ? 'bg-emerald-100 text-emerald-700'
+                    : 'bg-rose-100 text-rose-700'">
+                <span x-text="flashType === 'success' ? 'OK' : '!'"></span>
+            </div>
+            <div class="min-w-0 flex-1">
+                <p class="text-xs font-semibold uppercase tracking-[0.18em]"
+                   x-text="flashType === 'success' ? 'Added to cart' : 'Cart update failed'"></p>
+                <p class="mt-1 text-sm leading-relaxed" x-text="flashMessage"></p>
+            </div>
+            <button type="button"
+                    class="rounded-lg px-2 py-1 text-xs font-semibold text-black/45 transition hover:bg-black/5 hover:text-black/70"
+                    @click="clearFlash()"
+                    aria-label="Dismiss notification">
+                Close
+            </button>
+        </div>
+    </div>
+    </div>
 </div>
 
 <script>
@@ -653,9 +682,16 @@
                 }
 
                 this.flashTimeoutId = window.setTimeout(() => {
-                    this.flashMessage = '';
-                    this.flashTimeoutId = null;
+                    this.clearFlash();
                 }, 3200);
+            },
+            clearFlash() {
+                this.flashMessage = '';
+
+                if (this.flashTimeoutId) {
+                    clearTimeout(this.flashTimeoutId);
+                    this.flashTimeoutId = null;
+                }
             },
             async addToCart(event, productId) {
                 if (this.isAdding(productId)) {

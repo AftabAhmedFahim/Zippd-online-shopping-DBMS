@@ -12,7 +12,7 @@
 
 <section class="space-y-2">
     <h1 class="font-mono text-[42px] leading-[0.95] tracking-[-0.02em] text-black">Orders Management</h1>
-    <p class="font-roboto text-[15px] text-black/70">Manage all customer orders and update delivery/payment states.</p>
+    <p class="font-roboto text-[15px] text-black/70">Manage all customer orders and update delivery states.</p>
 </section>
 
 @if (session('admin_orders_success'))
@@ -177,22 +177,7 @@
                 @endif
             </div>
 
-            <div>
-                <label for="admin-order-edit-payment" class="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-black/55">
-                    Payment Status
-                </label>
-                <select
-                    id="admin-order-edit-payment"
-                    name="is_paid"
-                    class="admin-product-input @if ($errors->orderUpdate->has('is_paid')) admin-product-input-error @endif"
-                >
-                    <option value="1" @selected(old('is_paid') === '1')>Paid</option>
-                    <option value="0" @selected(old('is_paid') === '0')>Unpaid</option>
-                </select>
-                @if ($errors->orderUpdate->has('is_paid'))
-                    <p class="mt-2 text-sm text-rose-700">{{ $errors->orderUpdate->first('is_paid') }}</p>
-                @endif
-            </div>
+            <input type="hidden" name="is_paid" id="admin-order-edit-payment" value="{{ old('is_paid', '0') }}">
 
             <div class="flex justify-end">
                 <button type="submit" class="admin-action-btn admin-action-success rounded-xl px-4 py-2 text-sm">
@@ -213,6 +198,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const closeEditBtn = document.getElementById('admin-order-edit-close');
     const hasUpdateErrors = @json($errors->orderUpdate->any());
     const oldEditOrderId = @json($oldEditOrderId);
+
+    if (editModal && editModal.parentElement !== document.body) {
+        document.body.appendChild(editModal);
+    }
 
     const openEditModal = () => {
         if (editModal) {

@@ -122,8 +122,34 @@
 }
 
 .catalog-checkout-btn {
-    background: linear-gradient(120deg, #1f2937, #111827);
+    position: relative;
+    background: linear-gradient(135deg, #0f766e, #0a5f58 55%, #084c46);
     color: #ffffff;
+    box-shadow: 0 18px 34px -24px rgba(10, 95, 88, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    overflow: visible;
+}
+
+.catalog-checkout-btn:hover {
+    transform: translateY(-1px) scale(1.01);
+    box-shadow: 0 24px 38px -24px rgba(10, 95, 88, 1);
+}
+
+.catalog-checkout-count {
+    position: absolute;
+    top: -0.45rem;
+    right: 0.35rem;
+    min-width: 1.8rem;
+    padding: 0.18rem 0.45rem;
+    border-radius: 9999px;
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    background: #ffffff;
+    color: #111111;
+    font-size: 0.72rem;
+    line-height: 1.1;
+    font-weight: 800;
+    text-align: center;
+    box-shadow: 0 10px 18px -14px rgba(15, 118, 110, 0.9);
 }
 
 .catalog-add-btn {
